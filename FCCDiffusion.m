@@ -31,7 +31,8 @@ function p = FCCDiffusion(pump, t, r, z)
     
     % The initial distribution p(r,z,0) relates exactly to the intensity
     % profile of the pump since each photon creates exactly 1 e-h pair:
-    p(:,:,1) = intensityToCarriers(abs(pump.profile(:,:)).^2, sp.alpha775, pump.lambda) * 1e6; % [m^-3]
+    I = pump.intensityProfileBLDumped(z);
+    p(:,:,1) = intensityToCarriers(I, sp.alpha, pump.lambda) * 1e6; % [m^-3]
 
     % Crank-Nicolson method with operator splitting:
     Sr = lap1dNeumannCylR(r, dr);           % Nr x Nr

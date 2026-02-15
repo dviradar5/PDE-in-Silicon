@@ -3,49 +3,226 @@ clc; clear;
 sp = systemParameters();
 
 % Temporal vector intialization:
-tf = 30000;                 % 30 [ns]
+tf = 30000;                 % 0-30 [ns]
 t = 0:10:tf;                % time vector [ps]
 t = t .* 1e-12;             % time vector [s]
+dt = t(2)-t(1);
 Nt = numel(t);
 
 % Spacial vector intialization:
-Nr = 201;                               % Number of steps
+Nr = 201;                               % Number of elements
 Nz = 201;
 
 z = linspace(0, sp.Lz, Nz);
-r = linspace(0,sp.Lx/sqrt(2),Nr);       % FIX
-phi = atan(1);                          % y = x due to radial symmetry
+r = linspace(0,sqrt(2)*sp.Lx,Nr);       % Sample is 10x10 micron, so this r covers it
+phi = atan(1);                          % y = x, radial symmetry
+x = linspace(-max(r), max(r), 2*Nr-1);
+
+% Source:
+%y_src = -1;
+%polarization = Axis.x;
+%src =  RectSrc(Axis.y, y_src, [0 0.02; -0.1 0.1], polarization);
 
 % Laser constants:
-pmp_wd = 3e-11;                         % pulse of 30[ps]
+pmp_wd = 3e-11;        % pulse of 30[ps]
 pmp_D = sp.D2;
 w0 = 5e-6;
-pump_E0 = sqrt(sp.pulse_energies(5));   % E0 = 1
+z0 = -7;        % Beam waist location (like in the old simulation)
+pump_E = 16e-9;   % [J] FIXXXXXXXXXXXXX
+dE = 8e-9;      % Size of each energy portion [J]
+nsim = round(pump_E/dE);    % Number of iterations
 
-% Pump lasers:
-%pump1 = laser(sp.wl1, pmp_wd, pmp_D, "Donut", r, phi, z, w0, 0, pump_E0);  % z0 = 0
-pump2 = laser(sp.wl2, pmp_wd, pmp_D, "Donut", r, phi, z, w0, 0, pump_E0);  % 775[nm]
-%pump3 = laser(sp.wl2, pmp_wd, pmp_D, "Gauss", r, phi, z, w0, 0, pump_E0);
 
-% Shining 775[nm] donut beam on the sample:
-p2diff = FCCDiffusion(pump2, t, r, z);
+% Pump laser:
+pump = laser(sp.wl2, pmp_wd, pump_E, pmp_D, "Donut", r, phi, z, w0, z0);  % 775[nm], z0 = 0
+%Ipump = pump.intensityProfileBLDumped(z);
 
-% iz = 1;         % z(1) = 0
+% Shining pump beam on the sample, causing e-h generation and diffusion:
+pDiff = FCCDiffusion(pump, t, r, z);    % Creates spacial and temporal FCC distribution
+
+% Probe laser:
+prb_wd = 5e-11;   % pulse of 50[ps]
+prb_D = sp.D1;
+probe_E = sp.pulse_energies(5);         % [J]
+probe = laser(sp.wl1, prb_wd, probe_E, prb_D, "Gauss", r, phi, z, w0, 0);   % 1550[nm]
+
+% Calculating refractive index n(r,z,t) (changes due to diffusion):
+k0 = sp.alpha * pump.lambda / (4*pi);
+n_complex = zeros(Nr, Nz, Nt);  % complex refractive index over time
+
+for it = 1:Nt
+    N = pDiff(:,:,it);              % carrier density map at time t(it)
+
+    % Bennett–Soref expects Ne, Nh at probe wavelength:
+    [dn, dalpha] = BennetSoref(N, N, pump.lambda);
+
+    dk = dalpha * pump.lambda/ (4*pi);
+
+    n_complex(:,:,it) = (sp.n + dn) + 1i*(k0 + dk);
+end
+
+figure;
+imagesc(z*1e6, r*1e6, real(n_complex(:,:,Nt)));
+set(gca,'YDir','normal'); axis tight;
+xlabel('z [\mum]'); ylabel('r [\mum]');
+title('reflection, t = 0 ns');
+colorbar;
+
+figure;
+imagesc(z*1e6, r*1e6, imag(n_complex(:,:,Nt)));
+set(gca,'YDir','normal'); axis tight;
+xlabel('z [\mum]'); ylabel('r [\mum]');
+title('absorption, t = 0 ns');
+colorbar;
+
+figure;
+yyaxis left;  plot(r*1e6, imag(n_complex(:,1,Nt)),"r"); ylabel('\alpha [1/cm]');     
+yyaxis right; plot(r*1e6, real(n_complex(:,1,Nt)),"m"); ylabel('n');
+axis tight;
+xlabel('r [\mum]');
+legend;
+title('z=0m, t = 0 ns');
+grid on;
+
+
+Ein_r = probe.profile(:,1);     % field at z=0 from your laser class
+Iin_r = abs(Ein_r).^2;
+Iin_r = Iin_r / max(Iin_r);
+
+figure;
+plot(r*1e6, Iin_r, 'LineWidth', 1.5);
+xlabel('r [\mum]'); ylabel('norm |E|^2');
+title('Input probe intensity at z=0 (should be Gaussian in r)');
+grid on;
+
+% --- run maxwell for selected times only (faster to inspect) ---
+t_idx = unique([1, round(Nt/4), round(Nt/2), Nt]);
+
+for kk = 1:numel(t_idx)
+    i = t_idx(kk);
+
+    [E_rz, I_rz] = maxwell(r, z, probe.lambda, n_complex(:,:,i), probe.profile(:,1));
+    %[E_rz, I_rz] = maxwell_fdfd(r, z, probe.lambda, n_complex(:,:,i), probe.profile(:,1));
+
+
+    % Normalize globally for each snapshot
+    Iplot = I_rz;% / max(I_rz(:));
+
+    figure;
+    imagesc(z*1e6, r*1e6, Iplot);
+    set(gca,'YDir','normal'); axis tight;
+    xlabel('z [\mum]'); ylabel('r [\mum]');
+    title(sprintf('Probe intensity |E|^2 (normalized), t = %.3f ns', t(i)*1e9));
+    colorbar;
+
+    % Also show the surface (z=0) in Cartesian
+    Ir0 = I_rz(:,1);
+    %Ir0 = Ir0 / max(Ir0);
+
+    % robust Cartesian mapping (avoid cylToCart if you want)
+    x = linspace(-max(r), max(r), 2*numel(r)-1);
+    [X,Y] = meshgrid(x,x);
+    R = hypot(X,Y);
+    Ixy = interp1(r, Ir0, R, 'linear', 0);
+
+    figure;
+    imagesc(x*1e6, x*1e6, Ixy);
+    axis image; set(gca,'YDir','normal');
+    xlabel('x [\mum]'); ylabel('y [\mum]');
+    title(sprintf('Surface intensity (Cartesian), t = %.3f ns', t(i)*1e9));
+    colorbar;
+
+    % And a 1D cut (x-axis) to verify Gaussian shape
+    mid = ceil(size(Ixy,1)/2);
+    figure;
+    plot(x*1e6, Ixy(mid,:), 'LineWidth', 1.5);
+    xlabel('x [\mum]'); ylabel('norm I(x, y=0)');
+    title(sprintf('Surface linecut (should be Gaussian), t = %.3f ns', t(i)*1e9));
+    grid on;
+end
+
+
+
+
+
+
+% Probe beam propogating inside the sample:
+E_out = zeros(Nr,Nz,Nt);
+I_out = zeros(Nr,Nz,Nt);
+for i=1:Nt
+    % solving maxwell in r-z for specific t:
+    [E_out(:,:,i), I_out(:,:,i)] = maxwell(r, z, probe.lambda, n_complex(:,:,i), probe.profile(:,1));
+end
+
+
+
+%figure; plot(r*1e6, I_out(:,1,1)/max(I_out(:,1,1)));
+%title('I(r) at z=0'); xlabel('r [\mum]'); ylabel('normalized I');
+
+I1 = I_out(:,:,1);
+
+
+figure;
+imagesc(z, r, I1);
+axis image; set(gca,'YDir','normal');
+xlabel('z [\mum]'); ylabel('r [\mum]');
+title('probe intensity, t=0');
+colorbar;
+
+
+
+
+
+% Shining the probe on the sample:
+%prb_prf_after = probeAbsorptionBS(probe, pDiff, r, z, t);
+
+
+% Calculating the change in indexes at z=0 according to Bennet-Soref:
+% Intensity slice at z=0, t=0  (adjust dims if needed)
+% Ip0 = Ipump(:,1,1);                 % Nr×1
+% 
+% % Convert intensity -> carrier density (Nr×1)
+% Ne = intensityToCarriers(Ip0, sp.alpha775, pump.lambda);
+% Nh = Ne;
+% 
+% % Bennett–Soref (should work elementwise on vectors)
+% [dn, dalpha] = BennetSoref(Ne, Nh, pump.lambda);   % Nr×1 each
+% 
+% % r: Nr×1 from 0..rmax
+% %r = r(:);
+% 
+% % Map: r = |x|  (slice at y=0)
+% dn_x     = interp1(r, real(dn(:)),     abs(x), 'linear', 0);
+% dalpha_x = interp1(r, dalpha(:), abs(x), 'linear', 0);
+% 
+% n_x     = sp.n        + dn_x;
+% alpha_x = sp.alpha775 + dalpha_x;
+% 
+% figure;
+% yyaxis left;  plot(x*1e6, n_x);     ylabel('n');
+% yyaxis right; plot(x*1e6, alpha_x*1e-2); ylabel('\alpha [1/cm]');
+% xlabel('x [\mum]');
+% title('n(x) and \alpha(x) at y=0, z=0, t=0 for Gaussian Pump');
+
+% Displaying the FCC distribution in x-z for different time (diffusion):
+% FCCPlot_xz(pDiff, Nr, Nz, r, x, z);
+
+%iz = 1;         % z(1) = 0
 % it = 1;         % t(1) = 0
 % fprintf('z(iz) = %d', z(iz));
 
 % FCC distribution at different times:
 % figure;
 % subplot(1,3,1);
-% [P, xPlot, yPlot] = cylToCart(p2diff(:,:,1), r, iz);
+% [P, xPlot, yPlot] = cylToCart(pDiff(:,:,1), r, iz);
 % imagesc(xPlot, yPlot, P);
 % colorbar;
 % subplot(1,3,2);
-% [P, xPlot, yPlot] = cylToCart(p2diff(:,:,(Nt+1)/2), r, iz);
+% [P, xPlot, yPlot] = cylToCart(pDiff(:,:,(Nt+1)/2), r, iz);
 % imagesc(xPlot, yPlot, P);
 % colorbar;
 % subplot(1,3,3);
-% [P, xPlot, yPlot] = cylToCart(p2diff(:,:,Nt), r, iz);
+% [P, xPlot, yPlot] = cylToCart(pDiff(:,:,Nt), r, iz);
 % imagesc(xPlot, yPlot, P);
 % colorbar;
 
@@ -75,30 +252,21 @@ p2diff = FCCDiffusion(pump2, t, r, z);
 % title('p(x,y) at z=0 dumped');
 % colorbar;
 
-% Probe laser:
-prb_wd = 5e-11;   % pulse of 50[ps]
-prb_D = sp.D1;
-probe_E0 = sqrt(sp.pulse_energies(5));  % E0=1
-probe = laser(sp.wl1, prb_wd, prb_D, "Gauss", r, phi, z, w0, 0, probe_E0);  % 1550nm
-
-% Shining the probe on the sample:
-prb_prf_after = probeAbsorptionBS(probe, p2diff, r, z, t);
-
-[P1, xPlot1, yPlot1] = cylToCart(prb_prf_after(:,:,1), r, 1);
-I1 = (abs(P1).^2) .* exp(-z(1)/sp.penDepth);
-[P2, xPlot2, yPlot2] = cylToCart(prb_prf_after(:,:,(Nt+1)/2), r, 1);
-I2 = (abs(P2).^2) .* exp(-z(1)/sp.penDepth);
-figure;
-subplot(1,2,1);
-surf(xPlot1*1e6, yPlot1*1e6, I1);
-shading interp
-xlabel('x [\mum]'); ylabel('y [\mum]'); zlabel('Intensity [au]')
-colorbar
-subplot(1,2,2);
-surf(xPlot2*1e6, yPlot2*1e6, I2);
-shading interp
-xlabel('x [\mum]'); ylabel('y [\mum]'); zlabel('Intensity [au]')
-colorbar
+% [P1, xPlot1, yPlot1] = cylToCart(prb_prf_after(:,:,1), r, 1);
+% I1 = (abs(P1).^2) .* exp(-z(1)/sp.penDepth);
+% [P2, xPlot2, yPlot2] = cylToCart(prb_prf_after(:,:,(Nt+1)/2), r, 1);
+% I2 = (abs(P2).^2) .* exp(-z(1)/sp.penDepth);
+% figure;
+% subplot(1,2,1);
+% surf(xPlot1*1e6, yPlot1*1e6, I1);
+% shading interp
+% xlabel('x [\mum]'); ylabel('y [\mum]'); zlabel('Intensity [au]')
+% colorbar
+% subplot(1,2,2);
+% surf(xPlot2*1e6, yPlot2*1e6, I2);
+% shading interp
+% xlabel('x [\mum]'); ylabel('y [\mum]'); zlabel('Intensity [au]')
+% colorbar
 
 % iz=1;
 % 
@@ -164,12 +332,6 @@ colorbar
 % title('FWHM of probe with and without pump');
 % grid on;
 
-% pump-probe delay:
-delay = 0:5:25;
-delay = delay * 1e-9;   % delay in [ns]
-
-zi = 41; % 5 micron into the sample
-
 % figure;
 % for i = 1:length(delay)
 %     [P, xPlot, yPlot] = cylToCart(prb_prf_after(:,:,(300*i+1)), r, zi);
@@ -184,3 +346,4 @@ zi = 41; % 5 micron into the sample
 % end
 % 
 % sgtitle(sprintf('Pump-Probe delay effect on probe intensity at z=%.2d[\\mum]', z(zi)*1e6));
+
