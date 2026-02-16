@@ -1,3 +1,5 @@
+%% CHECK SIZES AND UNITS
+
 function sp = systemParameters()
     % Keeps all the constants and parameters needed for the simulation in 
     % one place
@@ -40,8 +42,8 @@ function sp = systemParameters()
     sp.D1 = 1.2e-3;     % beam width [?] ??????????
     sp.D2 = 3e-5;       % beam width [?] ??????????
     sp.pulse_energies = (0:0.25:5) .* 1e-6; % Pulse energy (intensity) [J]
-    sp.alpha = 1296.2;  % α in Si [1/cm]
-    %sp.alpha775 = 1e5;  % α for 775nm in n-type Si acc. to BS [1/m]
+    sp.alpha = 129620;  % α in Si [1/m] ???????????????????????
+    sp.alpha775 = 1e5;  % α for 775nm in n-type Si acc. to BS [1/m] ??????????
     %sp.alpha1550 = 1e5; % α for 1550nm in n-type Si acc. to BS [1/m] ????????????
 
 

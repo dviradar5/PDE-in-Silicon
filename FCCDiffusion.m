@@ -13,7 +13,7 @@ function p = FCCDiffusion(pump, t, r, z)
     %        z - vertical spacial coordinate vector coordiante [m]
     % 
     % OUTPUT:
-    %        p - FCC distribution, Nr x Nz x Nt
+    %        p - FCC distribution, Nr x Nz x Nt, [1/m^3]
     % *********************************************************************
     sp = systemParameters();
 

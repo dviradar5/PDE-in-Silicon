@@ -1,19 +1,21 @@
-function FCCPlot_xz(pDiff, Nr, Nz, r, x, z)
+function PF_FCCPlot_xz(pDiff, Nt, Nz, r, x, z)
     % Displaying the FCC distribution in x-z for different time (diffusion)
     % *********************************************************************
 
-    p1 = zeros(2*Nr-1, Nz);             % pDiff(x,z), cartesian not cylindrical                          
-    p2 = zeros(2*Nr-1, Nz);                     
-    p3 = zeros(2*Nr-1, Nz);                         
+    rVec = r(:);
+    xVec = [-flipud(rVec(2:end)); rVec];
+    absx = abs(xVec);
     
-    for iz = 1:Nz
-        [P1,~,~] = cylToCart(pDiff(:,:,1), r, iz);      % t = 0
-        [P2,~,~] = cylToCart(pDiff(:,:,11), r, iz);     % t = 100[ps]
-        [P3,~,~] = cylToCart(pDiff(:,:,201), r, iz);    % t = 2[ns]
-        p1(:,iz) = P1(:, Nr);      % y=0 at Nr in a (2*Nr-1) x (2*Nr-1) matrix
-        p2(:,iz) = P2(:, Nr);
-        p3(:,iz) = P3(:, Nr);
+    % index map: for each |x| find its r index (exact match)
+    [~, idx] = ismembertol(absx, rVec, 0);  % tolerance 0 assumes exact; use 1e-12 if needed
+    
+    pCart = zeros(numel(xVec), Nz, Nt);
+    for tt = 1:Nt
+        pr = pDiff(:,:,tt);     % Nr×Nz
+        pCart(:,:,tt) = pr(idx, :);
     end
+    
+    p1 = pCart(:,:,1); p2 = pCart(:,:,20); p3 = pCart(:,:,Nt);
     
     figure;
     

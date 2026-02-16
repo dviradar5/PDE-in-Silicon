@@ -1,3 +1,5 @@
+%% CHECK
+
 function L = lap1dNeumann(N, d)
 % L*u ≈ d^2u/dx^2 with Neumann BC (du/dx=0) at both ends.
 

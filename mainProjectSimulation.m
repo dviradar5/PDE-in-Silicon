@@ -1,11 +1,15 @@
+%% DOCUMENT
 clc; clear;
+%close all;
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sp = systemParameters();
 
 % Temporal vector intialization:
-tf = 30000;                 % 0-30 [ns]
-t = 0:10:tf;                % time vector [ps]
-t = t .* 1e-12;             % time vector [s]
+tf = 30000;                 % 30[ns]
+t = 0:10:tf;                % Time vector [ps]
+t = t .* 1e-12;             % Time vector, 0-30[ns], [s]
 dt = t(2)-t(1);
 Nt = numel(t);
 
@@ -14,76 +18,63 @@ Nr = 201;                               % Number of elements
 Nz = 201;
 
 z = linspace(0, sp.Lz, Nz);
-r = linspace(0,sqrt(2)*sp.Lx,Nr);       % Sample is 10x10 micron, so this r covers it
+r = linspace(0,sqrt(2)*sp.Lx,Nr);       % 10x10 micron sample so r covers it
 phi = atan(1);                          % y = x, radial symmetry
+
 x = linspace(-max(r), max(r), 2*Nr-1);
 
-% Source:
-%y_src = -1;
-%polarization = Axis.x;
-%src =  RectSrc(Axis.y, y_src, [0 0.02; -0.1 0.1], polarization);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ENERGIES
 % Laser constants:
-pmp_wd = 3e-11;        % pulse of 30[ps]
+pmp_wd = 3e-11;         % Pulse of 30[ps]
 pmp_D = sp.D2;
 w0 = 5e-6;
-z0 = -7;        % Beam waist location (like in the old simulation)
-pump_E = 16e-9;   % [J] FIXXXXXXXXXXXXX
-dE = 8e-9;      % Size of each energy portion [J]
-nsim = round(pump_E/dE);    % Number of iterations
-
+z0 = 0;                 % Beam waist location (-7 in old simulation)
+pump_E = 16e-9;         % [J] FIXXXXXXXXXXXXX
+%dE = 8e-9;             % Size of each energy portion [J]
+%nsim = round(pump_E/dE);    % Number of iterations
 
 % Pump laser:
-pump = laser(sp.wl2, pmp_wd, pump_E, pmp_D, "Donut", r, phi, z, w0, z0);  % 775[nm], z0 = 0
-%Ipump = pump.intensityProfileBLDumped(z);
+pump = laser(sp.wl2, pmp_wd, pump_E, pmp_D, "Donut", r, phi, z, w0, z0);  % 775[nm]
+Ipump = pump.intensityProfileBLDumped(z);
+%beamIntensityPlotXZ(Ipump, r, z, x)
+%beamPlotXY(r, x, Ipump(:,1), 1, 10);
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Shining pump beam on the sample, causing e-h generation and diffusion:
-pDiff = FCCDiffusion(pump, t, r, z);    % Creates spacial and temporal FCC distribution
+pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution
+%tIdx = [1, 20, 200, Nt];
+%FCCPlot_xz_from_rzt(pDiff, r, z, t);
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MAYBE MOVE TO FUNCTION
+% Calculating the complex refractive index n(r,z,t) (it changes due to diffusion):
+k0 = sp.alpha * pump.lambda / (4*pi);
+n_complex = zeros(Nr, Nz, Nt);      % complex refractive index over time
+
+for it = 1:Nt
+    N = pDiff(:,:,it);              % Ne = Nh since 1 photon = e+h
+
+    % Bennett–Soref expects Ne, Nh at pump wavelength:
+    [dn, dalpha] = BennettSoref(N, N, pump.lambda);
+
+    n_complex(:,:,it) = (sp.n + dn) + 1i*(k0 + dalpha * pump.lambda/ (4*pi));
+    
+    % Calculating relative permitivity for maxwell's equations later:
+    %epsilon_r = n_complex^2;
+end
+
+%PF_complexRefractiveIndex(n_complex, r, z, x);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Probe laser:
 prb_wd = 5e-11;   % pulse of 50[ps]
 prb_D = sp.D1;
 probe_E = sp.pulse_energies(5);         % [J]
-probe = laser(sp.wl1, prb_wd, probe_E, prb_D, "Gauss", r, phi, z, w0, 0);   % 1550[nm]
-
-% Calculating refractive index n(r,z,t) (changes due to diffusion):
-k0 = sp.alpha * pump.lambda / (4*pi);
-n_complex = zeros(Nr, Nz, Nt);  % complex refractive index over time
-
-for it = 1:Nt
-    N = pDiff(:,:,it);              % carrier density map at time t(it)
-
-    % Bennett–Soref expects Ne, Nh at probe wavelength:
-    [dn, dalpha] = BennetSoref(N, N, pump.lambda);
-
-    dk = dalpha * pump.lambda/ (4*pi);
-
-    n_complex(:,:,it) = (sp.n + dn) + 1i*(k0 + dk);
-end
-
-figure;
-imagesc(z*1e6, r*1e6, real(n_complex(:,:,Nt)));
-set(gca,'YDir','normal'); axis tight;
-xlabel('z [\mum]'); ylabel('r [\mum]');
-title('reflection, t = 0 ns');
-colorbar;
-
-figure;
-imagesc(z*1e6, r*1e6, imag(n_complex(:,:,Nt)));
-set(gca,'YDir','normal'); axis tight;
-xlabel('z [\mum]'); ylabel('r [\mum]');
-title('absorption, t = 0 ns');
-colorbar;
-
-figure;
-yyaxis left;  plot(r*1e6, imag(n_complex(:,1,Nt)),"r"); ylabel('\alpha [1/cm]');     
-yyaxis right; plot(r*1e6, real(n_complex(:,1,Nt)),"m"); ylabel('n');
-axis tight;
-xlabel('r [\mum]');
-legend;
-title('z=0m, t = 0 ns');
-grid on;
-
+probe = laser(sp.wl2, prb_wd, probe_E, prb_D, "Gauss", r, phi, z, w0, 0);   % 775[nm]
 
 Ein_r = probe.profile(:,1);     % field at z=0 from your laser class
 Iin_r = abs(Ein_r).^2;
@@ -95,6 +86,7 @@ xlabel('r [\mum]'); ylabel('norm |E|^2');
 title('Input probe intensity at z=0 (should be Gaussian in r)');
 grid on;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % --- run maxwell for selected times only (faster to inspect) ---
 t_idx = unique([1, round(Nt/4), round(Nt/2), Nt]);
 
@@ -142,7 +134,7 @@ for kk = 1:numel(t_idx)
 end
 
 
-
+probeComparison();
 
 
 

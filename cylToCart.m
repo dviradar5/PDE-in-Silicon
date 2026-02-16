@@ -1,6 +1,6 @@
 %% FINISHED
 
-function [Pxy, xPlot, yPlot] = cylToCart(A, r, iz)
+function [Pxy, xPlot, yPlot] = cylToCart(A, r)
     % Cylindrical to Cartesian transformation
     % ---------------------------------------------------------------------
     % Transforms cylindrical vector A(:,iz) to cartesian matrix. A is a
@@ -24,10 +24,8 @@ function [Pxy, xPlot, yPlot] = cylToCart(A, r, iz)
     
     r = r(:);
     
-    p_r = A(:, iz);
-
     [X,Y] = meshgrid(xPlot, yPlot);
     R = hypot(X,Y);
 
-    Pxy = interp1(r, p_r(:), R, 'linear', 0);   % Ny x Nx
+    Pxy = interp1(r, A(:), R, 'linear', 0);   % Ny x Nx
 end
