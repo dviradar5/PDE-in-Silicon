@@ -1,6 +1,6 @@
-%% FINISHED
+%% DOCUMENT
 
-function N = intensityToCarriers(I, alpha, lambda)
+function N = intensityToCarriers(I, tau, lambda)
     % Convert intensity to carrier concentration
     % ---------------------------------------------------------------------
     % Calculates electron/hole concentration given intensity profile.
@@ -16,14 +16,16 @@ function N = intensityToCarriers(I, alpha, lambda)
     % *********************************************************************
 
     sp = systemParameters();
-    
-    % Single photon energy: 
-    Eph = sp.h*sp.c0/lambda;        % hc/λ [J]
-    
-    F = I;          % fluence [J/m^2], since I isn't t-dependent (MAYBE *dt)
-    
-    N  = alpha .* F / (Eph * 1e6); % [cm^-3]
+
+    F = peakI_to_fluence(I, tau);
+    Eph = sp.h*sp.c0/lambda;           % [J]
+    N = sp.alpha .* F / Eph;            % [1/m^3]
 
 
     % n_p=this.E/this.eV/this.h_bar*this.lambda/this.c0;
+end
+
+function F = peakI_to_fluence(Ipeak, tau)
+    temporalInt = (tau/2)*sqrt(pi/log(2));  % [s]
+    F = Ipeak * temporalInt;                % [J/m^2]
 end

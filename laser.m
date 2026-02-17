@@ -185,6 +185,11 @@ classdef laser
                 a = a + exp(-2*log(2)*((t - tc).^2)/(tau^2));
             end
         end
+        
+        function E = updateProfile(this, profile)
+            this.profile = profile;
+            E = this.profile;
+        end
 
         function E = fieldProfile(this, t)
             % Returns full spatio-temporal field E(r,z,t):
@@ -232,9 +237,21 @@ classdef laser
             sp = systemParameters();
             
             z = z(:).'; % 1 x Nz
-            I = abs(this.profile).^2 .* exp(-sp.alpha * z);
-            I = I / max(I(:)); % keep normalized like your original intent
+            I0 = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.E0)^2;   % [W/m^2]
+    
+            % Spatial factor from field profile (already contains E0), but use |E|^2 / |E0|^2
+            spatial = abs(this.profile).^2 / (abs(this.E0)^2);     % dimensionless
+    
+            I = I0 * spatial .* exp(-sp.alpha * z);             % [W/m^2] peak (t at pulse center)
+            %I = abs(this.profile).^2 .* exp(-sp.alpha * z);
+            %I = I / max(I(:));
         end
+        
+        % function I = intensityXY(Ir, r, x)
+        %     [X,Y] = meshgrid(x,x);
+        %     R = hypot(X,Y);
+        %     I = interp1(r, Ir, R, 'linear', 0);
+        % end
 
         function Trep = period(this)
             if this.rep_rate <= 0

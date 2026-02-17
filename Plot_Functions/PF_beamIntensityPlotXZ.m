@@ -1,6 +1,6 @@
 %% DOCUMENT
 
-function PF_beamIntensityPlotXZ(Ipump, r, z, x)
+function PF_beamIntensityPlotXZ(I, r, z, x)
     zVec = z(:);
     xVec = x(:);
     
@@ -8,7 +8,7 @@ function PF_beamIntensityPlotXZ(Ipump, r, z, x)
     
     IxZ = zeros(numel(xVec), numel(zVec));
     for k = 1:numel(zVec)
-        IxZ(:,k) = interp1(r(:), Ipump(:,k), absx, 'linear', 'extrap');
+        IxZ(:,k) = interp1(r(:), I(:,k), absx, 'linear', 'extrap');
     end
     
     figure;
