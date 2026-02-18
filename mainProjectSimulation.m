@@ -4,13 +4,13 @@ clc; clear;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Paraneters and vector definitions:
 sp = systemParameters();
 
 % Temporal vector intialization:
 tf = 30000;                 % 30[ns]
-t = 0:10:tf;                % Time vector [ps]
+t = 0:10:tf;
 t = t .* 1e-12;             % Time vector, 0-30[ns], [s]
-dt = t(2)-t(1);
 Nt = numel(t);
 
 % Spacial vector intialization:
@@ -18,6 +18,7 @@ Nr = 201;                               % Number of elements
 Nz = 201;
 
 z = linspace(0, sp.Lz, Nz);
+
 r = linspace(0,sqrt(2)*sp.Lx,Nr);       % 10x10 micron sample so r covers it
 phi = atan(1);                          % y = x, radial symmetry
 
@@ -26,18 +27,18 @@ x = linspace(-max(r), max(r), 2*Nr-1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ENERGIES, INTENSITY OoM
-% Laser constants:
+% Laser parameters:
 pmp_wd = 3e-11;         % Pulse of 30[ps]
 pmp_D = sp.D2;
 w0 = 5e-6;
 z0 = 0;                 % Beam waist location (-7 in old simulation)
-pump_E = 10e-9;         % [J] FIXXXXXXXXXXXXX
-%dE = 8e-9;             % Size of each energy portion [J]
-%nsim = round(pump_E/dE);    % Number of iterations
+pump_E = 35e-9;         % [J] FIXXXXXXXXXXXXX
 
 % Pump laser:
 pump = laser(sp.wl2, pmp_wd, pump_E, pmp_D, "Donut", r, phi, z, w0, z0);  % 775[nm]
+
 Ipump = pump.intensityProfileBLDumped(z);
+
 PF_beamIntensityPlotXZ(Ipump, r, z, x)
 %PF_beamPlotXY(r, x, Ipump(:,1), 1, 10);
 
@@ -45,8 +46,8 @@ PF_beamIntensityPlotXZ(Ipump, r, z, x)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Shining pump beam on the sample, causing e-h generation and diffusion:
 pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution
-%tIdx = [1, 20, 200, Nt];
-%PF_FCCPlot_xz_from_rzt(pDiff*1e-6, r, z, t); %???????????????
+tIdx = [1, 20, 200, 1000, Nt];
+%PF_colormapAnimation_xz(pDiff*1e-6, r, z ,x, tIdx, "FCC Concentration vs. Time", "FCC concentration [1/cm^3]");
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,7 +67,7 @@ for it = 1:Nt
     %epsilon_r = n_complex^2;
 end
 
-PF_complexRefractiveIndex(n_complex, r, z, x, pump.lambda);
+PF_complexRefractiveIndex(n_complex(:,:,1), r, z, x, pump.lambda, 1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ENERGY, GAUSSIAN PULSE EVELOPE
@@ -77,66 +78,25 @@ probe_E = pump.pulse_energy/100;         % [J]
 
 probe = laser(sp.wl2, prb_wd, probe_E, prb_D, "Gauss", r, phi, z, 3*w0, 0);   % 775[nm]
 
-Iin_r = probe.intensityProfileBLDumped(z);
-%Iin_x = probe.intensityXY(Iin_r);
+Iprobe = probe.intensityProfileBLDumped(z);
 
-PF_beamIntensityPlotXZ(Iin_r,r,z,x);
+PF_beamIntensityPlotXZ(Iprobe,r,z,x);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% --- run maxwell for selected times only (faster to inspect) ---
-% t_idx = unique([1, round(Nt/4), round(Nt/2), Nt]);
-% 
-% for kk = 1:numel(t_idx)
-%     i = t_idx(kk);
-% 
-%     [E_rz, I_rz] = maxwell(r, z, probe.lambda, n_complex(:,:,i), probe.profile(:,1));
-%     %[E_rz, I_rz] = maxwell_fdfd(r, z, probe.lambda, n_complex(:,:,i), probe.profile(:,1));
-% 
-% 
-%     % Normalize globally for each snapshot
-%     Iplot = I_rz;% / max(I_rz(:));
-% 
-%     figure;
-%     imagesc(z*1e6, r*1e6, Iplot);
-%     set(gca,'YDir','normal'); axis tight;
-%     xlabel('z [\mum]'); ylabel('r [\mum]');
-%     title(sprintf('Probe intensity |E|^2 (normalized), t = %.3f ns', t(i)*1e9));
-%     colorbar;
-% 
-%     % Also show the surface (z=0) in Cartesian
-%     Ir0 = I_rz(:,1);
-%     %Ir0 = Ir0 / max(Ir0);
-% 
-%     % robust Cartesian mapping (avoid cylToCart if you want)
-%     x = linspace(-max(r), max(r), 2*numel(r)-1);
-%     [X,Y] = meshgrid(x,x);
-%     R = hypot(X,Y);
-%     Ixy = interp1(r, Ir0, R, 'linear', 0);
-% 
-%     figure;
-%     imagesc(x*1e6, x*1e6, Ixy);
-%     axis image; set(gca,'YDir','normal');
-%     xlabel('x [\mum]'); ylabel('y [\mum]');
-%     title(sprintf('Surface intensity (Cartesian), t = %.3f ns', t(i)*1e9));
-%     colorbar;
-% 
-%     % And a 1D cut (x-axis) to verify Gaussian shape
-%     mid = ceil(size(Ixy,1)/2);
-%     figure;
-%     plot(x*1e6, Ixy(mid,:), 'LineWidth', 1.5);
-%     xlabel('x [\mum]'); ylabel('norm I(x, y=0)');
-%     title(sprintf('Surface linecut (should be Gaussian), t = %.3f ns', t(i)*1e9));
-%     grid on;
-% end
-
-tIdx = [1, 20, 200, Nt];
+% Probe propogation (BPM):
+Iproagate = zeros(Nr,Nz,numel(tIdx));           % Probe intensity after propogation
 
 for i = 1:numel(tIdx)
-    %[E_xz, I_xz, xBPM, zBPM] = propagationBPM(probe.profile(:,1), r, z, probe, n_complex(:,:,i), true);
-    [~, I_rz] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,tIdx(i)));
+    [~, Iproagate(:,:,i)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,i));
 
-    PF_beamIntensityPlotXZ(I_rz, r, z, x);
+    %PF_beamIntensityPlotXZ(I_rz, r, z, x);
 end
 
+%PF_colormapAnimation_xz(Iproagate,r,z,x,tIdx,"Probe Propogation", "Intensity [W/m^2]")
+
+% Comparing the probe with and without pump:
 PF_probeComparison();
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 

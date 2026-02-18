@@ -1,4 +1,4 @@
-%% FINISHED
+%% DOCUMENT
 
 function fwhm = FWHM(I_prf, r)
     % FWHM calculator function

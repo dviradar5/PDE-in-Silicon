@@ -1,6 +1,6 @@
 %% FINISHED
 
-function [Pxy, xPlot, yPlot] = cylToCart(A, r)
+function Axy = cylToCart(A, r, x)
     % Cylindrical to Cartesian transformation
     % ---------------------------------------------------------------------
     % Transforms cylindrical vector A(:,iz) to cartesian matrix. A is a
@@ -9,23 +9,21 @@ function [Pxy, xPlot, yPlot] = cylToCart(A, r)
     % INPUTS:
     %        A - matrix, Nr x Nz
     %        r - radial coordinate vector [m]
-    %        iz - z index (constant z) [m]
+    %        x - x coordinate vector [m]
     % OUTPUT:
-    %        xplot - x vector [m]
-    %        yplot - y vector [m]
-    %        prf - complex field spacial profile in cylindrical coordinates
+    %        Pxy - spacial matrix in cartesian coordinates (xz), Nx x Nz
     % *********************************************************************
     
-    rmax = max(r);
-    Nr = length(r);
-
-    xPlot = linspace(-rmax, rmax, 2*Nr-1);
-    yPlot = xPlot;                          % Radial symmetry
-    
     r = r(:);
-    
-    [X,Y] = meshgrid(xPlot, yPlot);
-    R = hypot(X,Y);
+    x = x(:);
 
-    Pxy = interp1(r, A(:), R, 'linear', 0);   % Ny x Nx
+    [~,Nz] = size(A);
+    
+    R = abs(x);
+
+    Axy = zeros(numel(x), Nz);
+
+    for zz = 1:Nz
+        Axy(:,zz) = interp1(r, A(:,zz), R, 'linear', 0);
+    end
 end

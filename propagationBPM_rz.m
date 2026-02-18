@@ -1,3 +1,5 @@
+%% DOCUMENT
+
 function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex_rz)
 %propagationBPM_rz  Axisymmetric (m=0) BPM propagation in cylindrical r-z.
 %
