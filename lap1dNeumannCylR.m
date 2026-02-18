@@ -1,5 +1,20 @@
-function L = lap1dNeumannCylR(r, dr)
+%% FINISHED
 
+function L = lap1dNeumannCylR(r, dr)
+    % 1D cylindrical laplacian calculator
+    % ---------------------------------------------------------------------
+    % Numerically calculates 1D laplacian (1/r*d(rd/dr))/dr) of r in 
+    % cylindrical coordinatesb with Neumann BC (du/dr=0)
+    % Calculation by:
+    %         u"(i) ≈ (u(i−1)​−2u(i)​+u(i+1))/dr^2+(u(i+1)​​-u(i-1))/rdr​
+    % =====================================================================
+    % INPUTS:
+    %        r - radial coordinate vector, Nr
+    %        dr - distance between two grid points 
+    % OUTPUT:
+    %        L - laplacian approximation matrix 
+    % *********************************************************************
+    
     r = r(:);
     Nr = numel(r);
 
@@ -9,20 +24,17 @@ function L = lap1dNeumannCylR(r, dr)
 
     % Interior nodes i = 2..Nr-1
     for i = 2:Nr-1
-        ri = r(i);
-        lower(i-1) = 1/dr^2 - 1/(2*dr*ri);
-        upper(i)   = 1/dr^2 + 1/(2*dr*ri);   % note: upper is Nr-1, so index i<=Nr-1 is OK
+        lower(i-1) = 1/dr^2 - 1/(2*dr*r(i));
+        upper(i)   = 1/dr^2 + 1/(2*dr*r(i));
     end
-
-    % r = 0 (i=1): L p ≈ 4 (p2 - p1)/dr^2
+    
+    
     main(1)  = -4/dr^2;
     upper(1) =  4/dr^2;
 
-    % r = R (i=Nr): Neumann dp/dr=0 -> L p ≈ 2 (p_{N-1} - p_N)/dr^2
     main(Nr)     = -2/dr^2;
     lower(Nr-1)  =  2/dr^2;
 
-    % Pad to Nr so spdiags can concatenate
     lower_full = [lower; 0];
     upper_full = [0; upper];
 

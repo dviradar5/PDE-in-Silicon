@@ -1,7 +1,7 @@
 %% FINISHED
 
 function Axy = cylToCart(A, r, x)
-    % Cylindrical to Cartesian transformation
+    % Cylindrical to cartesian transformation
     % ---------------------------------------------------------------------
     % Transforms cylindrical vector A(:,iz) to cartesian matrix. A is a
     % symmetrical cylindrical matrix representing r and z

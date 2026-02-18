@@ -1,21 +1,22 @@
 %% FINISHED
 
-function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz)
+function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     % Plots Different Refractive Index Plots
     % ---------------------------------------------------------------------
     % Plots colormaps of the imaginary and real parts of the complex
-    % refractive index (n = n + ik) in xz plane
+    % refractive index (n = n + ik) in xz plane for some t
     % 
     % Plots the refractive index and absorption coefficient [1/cm] at
     % certain z (iz) vs. x on the same graph
     % =====================================================================
     % INPUTS:
-    %        n_complex - complex refractive index matrix, Nr x Nz
+    %        n_complex - complex refractive index matrix at some t, Nr x Nz
     %        r - radial coordinate vector [m]
     %        z - z coordinate vector [m]
     %        x - x coordinate vector [m]
     %        lambda - beam's wavelength [m]
     %        iz - z index
+    %        it - specific time point
     % *********************************************************************
     
     % Converting the matrix to cartesian:
@@ -27,7 +28,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz)
     imagesc(z*1e6, x*1e6, real(n_xz));
     set(gca,'YDir','normal'); axis tight;
     xlabel('z [\mum]'); ylabel('x [\mum]');
-    title('reflection');
+    title(sprintf('Refraction at t=%d[s]',it));
     colorbar;
 
     % Absorption coefficient:
@@ -35,7 +36,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz)
     imagesc(z*1e6, x*1e6, n_imag_x);
     set(gca,'YDir','normal'); axis tight;
     xlabel('z [\mum]'); ylabel('x [\mum]');
-    title('absorption');
+    title(sprintf('Absorption at t=%d[s]',it));
     cb = colorbar(gca);
     cb.Label.String = "\alpha [1/cm]";
     
@@ -48,7 +49,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz)
     ylabel('n'); ax.YColor = 'm';
     axis tight; grid on;
     xlabel('x [\mum]');
-    legend('~imag(n)', 'real(n)');
-    title(sprintf('Refraction and Absorption at z=%d[m]',z(iz)));
+    legend('\alpha', 'n');
+    title(sprintf('Refraction and Absorption at z=%d[m] at t=%d[s]',z(iz),it));
 
 end

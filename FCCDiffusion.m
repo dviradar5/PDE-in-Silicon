@@ -1,20 +1,23 @@
 %% FINISHED
 
 function p = FCCDiffusion(pump, t, r, z)
-    % PDE calculation function
+    % FCC diffusion calculator
     % ---------------------------------------------------------------------
     % Numerically calculates spacial and temporal free-charge carriers (FCC)
-    % distribution inside the Silicon sample using diffusion equation
+    % distribution inside the Silicon sample using the diffusion equation
+    % in cylindrical coordinates
+    % Uses Crank-Nicolson method with operator splitting and the appropriate
+    % laplacians with Neumann BC (du/dx=0)
     % =====================================================================
-    % INPUT:
-    %        pump - pump laser beam. Laser-type object
-    %        t - time vector
+    % INPUTS:
+    %        pump - pump laser beam, Laser-type object
+    %        t - time vector [s]
     %        r - radial spacial coordinate vector [m] 
-    %        z - vertical spacial coordinate vector coordiante [m]
-    % 
+    %        z - z coordinate vector [m]
     % OUTPUT:
     %        p - FCC distribution, Nr x Nz x Nt, [1/m^3]
     % *********************************************************************
+    
     sp = systemParameters();
 
     Nr = length(r);                      % Number of elements
@@ -48,13 +51,13 @@ function p = FCCDiffusion(pump, t, r, z)
     Az = (Iz - 0.5*sp.D*dt*Sz);
     Bz = (Iz + 0.5*sp.D*dt*Sz);
 
-    
     for i = 2:Nt
         % Diffusion:
-        temp2 = Ar \ (p(:,:,i-1) * Bz);     % Nr x Nz
-        temp3 = (Br * temp2) / Az;          % Nr x Nz
+        temp1 = Ar \ (p(:,:,i-1) * Bz);     % Nr x Nz
+        temp2 = (Br * temp1) / Az;          % Nr x Nz
             
         % Recombination:
-        p(:,:,i) = temp3 * (1 - dt/sp.tau);
+        p(:,:,i) = temp2 * (1 - dt/sp.tau);
     end
+
 end

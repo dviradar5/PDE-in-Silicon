@@ -1,3 +1,5 @@
+%% DOCUMENT
+
 function PF_FCCPlot_xz(pDiff, Nt, Nz, r, x, z)
     % Displaying the FCC distribution in x-z for different time (diffusion)
     % *********************************************************************
