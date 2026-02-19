@@ -27,7 +27,7 @@ function PF_probeComparison(Ibefore, Iafter, x, z, it)
     axis xy;
     xlabel('z [\mum]');
     ylabel('x [\mum]');
-    title(sprintf('Probe Intensity with Pump and %d[s] Delay',it));
+    title(sprintf('Probe Intensity with Pump and %d[ps] Delay',it*1e12));
     colorbar;
 
 end

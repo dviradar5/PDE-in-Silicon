@@ -28,7 +28,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     imagesc(z*1e6, x*1e6, real(n_xz));
     set(gca,'YDir','normal'); axis tight;
     xlabel('z [\mum]'); ylabel('x [\mum]');
-    title(sprintf('Refraction at t=%d[s]',it));
+    title(sprintf('Refraction at t=%d[ps]',it*1e12));
     colorbar;
 
     % Absorption coefficient:
@@ -36,7 +36,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     imagesc(z*1e6, x*1e6, n_imag_x);
     set(gca,'YDir','normal'); axis tight;
     xlabel('z [\mum]'); ylabel('x [\mum]');
-    title(sprintf('Absorption at t=%d[s]',it));
+    title(sprintf('Absorption at t=%d[ps]',it*1e12));
     cb = colorbar(gca);
     cb.Label.String = "\alpha [1/cm]";
     
@@ -50,6 +50,6 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     axis tight; grid on;
     xlabel('x [\mum]');
     legend('\alpha', 'n');
-    title(sprintf('Refraction and Absorption at z=%d[m] at t=%d[s]',z(iz),it));
+    title(sprintf('Refraction and Absorption at z=%d[m] at t=%d[ps]',z(iz),it*1e12));
 
 end

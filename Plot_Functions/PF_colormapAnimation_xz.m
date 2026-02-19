@@ -1,12 +1,34 @@
-%% DOCUMENT
+%% FINISHED
 
-function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title)
+function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title, lockClim, fps)
+    % Colormap animation
+    % ---------------------------------------------------------------------
+    % Plots and displays few frames one after the other in a finite loop.
+    % Saves the video as .mp4 file.
+    % =====================================================================
+    % INPUTS:
+    %        Arz - matrix, Nr x Nz
+    %        r - radial spacial coordinate vector [m] 
+    %        z - z coordinate vector [m] 
+    %        x - x coordinate vector [m]
+    %        tIdx - time index vector
+    %        vidName - name of the video, string
+    %        cb_title - title to put near the colorbar, string
+    %        lockClim - boolean flag to lock the colorbar
+    %        fps - number of frames per second
+    % *********************************************************************
 
     zVec = z(:);
     xVec = x(:);
+    
+    if nargin < 8
+        lockClim = true;
+    end
 
-    fps   = 1;
-    loops = 3;
+    if nargin < 9
+        fps = 1;
+    end
+    loops = 3;      % Repeat 3 times
 
     v = VideoWriter(vidName, 'MPEG-4');
     v.FrameRate = fps;
@@ -14,10 +36,10 @@ function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title)
 
     fig = figure('Color','w');
 
-    % Make an axes area that reserves space (colorbar won't get clipped)
     tl = tiledlayout(fig, 1, 1, 'Padding','compact', 'TileSpacing','compact');
     ax = nexttile(tl);
 
+    % Converting to cartesian:
     Axz0 = cylToCart(Arz(:,:,tIdx(1)), r, x);
 
     hImg = imagesc(ax, zVec*1e6, xVec*1e6, Axz0);
@@ -27,12 +49,15 @@ function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title)
     ylabel(ax, 'x [\mum]');
     colormap(ax, 'parula');
 
-    % Lock color limits
-    climit = [min(Axz0(:)) max(Axz0(:))];
-    if climit(1) == climit(2), climit = climit + [-1 1]; end
-    clim(ax, climit);
+    % Optionally lock colorbar limits:
+    if lockClim
+        climit = [min(Axz0(:)) max(Axz0(:))];
+        if climit(1) == climit(2), climit = climit + [-1 1]; end
+        clim(ax, climit);
+    end
+    
 
-    % Colorbar attached to *this* axes, placed on the right
+    % Same colorbar for all the frames:
     cb = colorbar(ax);
     cb.Label.String = cb_title;
 
@@ -43,11 +68,20 @@ function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title)
 
             Axz = cylToCart(Arz(:,:,tIdx(ii)), r, x);
             set(hImg, 'CData', Axz);
+            
+            % Optionally unlock colorbar limits:
+            if ~lockClim
+                climit = [min(Axz(:)) max(Axz(:))];
+                if climit(1) == climit(2), climit = climit + [-1 1]; end
+                clim(ax, climit);
+            end
 
             title(ax, sprintf('frame %d/%d', ii, numel(tIdx)));
             drawnow;
 
             writeVideo(v, getframe(fig));
+            
+            % Show one frame per second:
             pause(1/fps);
         end
     end

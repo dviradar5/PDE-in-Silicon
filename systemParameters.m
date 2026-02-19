@@ -3,7 +3,8 @@
 classdef systemParameters
     % Parameters structure
     % ---------------------------------------------------------------------
-    % Keeps all the constants and parameters needed for the simulation
+    % Keeps all the constants and parameters needed for the simulation in
+    % one place, (most) in SI units
     % *********************************************************************
     
     properties
@@ -30,7 +31,7 @@ classdef systemParameters
         % Diffusion parameters:
         D = 2.6e-4;                 % Diffusion parameter [m^2/s]
         tau = 2.5e-9;               % Effective recombination time of 25[ns], [s]
-        elt = 50e-12;               % hot election life time [s]
+        elt = 50e-12;               % hot electron life time [s]
     
         % Drude model parameters:
         tau_D = 1e-14;              % Drude damping time [s]
@@ -43,7 +44,6 @@ classdef systemParameters
         wl2 = 775e-9;               % wavelength [m]
         D1 = 1.2e-3;                % beam width [?] ??????????
         D2 = 3e-5;                  % beam width [?] ??????????
-        pulse_energies = (0:0.25:5) .* 1e-6; % Pulse energy (intensity) [J]
         alpha = 129620;             % α in Si [1/m] ???????????????????????
         %alpha775 = 1e5;             % α for 775nm in n-type Si acc. to BS [1/m] ??????????
         %alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m] ????????????

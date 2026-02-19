@@ -1,4 +1,4 @@
-%% DOCUMENT
+%% FINISHED
 
 function PF_maxIntensity(I, t)
     % Compares intensity Plots

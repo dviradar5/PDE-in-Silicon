@@ -13,7 +13,7 @@ function PF_beamIntensityPlot_xz(I, z, x, plotTitle)
     %        plotTitle - part of the title, string
     % *********************************************************************
     
-    if nargin < 5 || ~(isstring(plotTitle))
+    if nargin < 4 || ~(isstring(plotTitle))
         plotTitle = '';
     end
     
@@ -22,6 +22,7 @@ function PF_beamIntensityPlot_xz(I, z, x, plotTitle)
     axis xy;
     xlabel('z [mum]');
     ylabel('x [mum]');
-    title(sprintf('%s Intensity', plotTitle));
+    title(plotTitle);
     colorbar;
+    
 end
