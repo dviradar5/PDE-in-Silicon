@@ -1,18 +1,9 @@
-%% ADD PULSE AND TIME DEPENDANCE, ADD ENERGY
-%% DOCUMENT
-%% CHECK FUNCTIONS
+%% CHECK BL DUMPING
 
 classdef laser
     % Laser Beam Class
     % ---------------------------------------------------------------------
-    % Describes single laser beam with spatial and temporal Gaussian pulse  
-    % scaling from pulse energy
-    %
-    % Conventions used here:
-    %   - GB/LGB01 return complex electric field E(r,z) [V/m] when given E0 [V/m]
-    %   - pulseEnergy is energy per pulse [J]
-    %   - pulse_width is INTENSITY FWHM duration [s] (common in optics)
-    %
+    % Describes single laser beam with spatial and temporal Gaussian pulse
     % *********************************************************************
 
     properties
@@ -20,242 +11,252 @@ classdef laser
         f;                   % Frequency [Hz]
         ang_f;               % Angular frequency [rad/s]
 
-        pulse_width;         % Intensity FWHM [s]
-        pulse_energy;        % Pulse energy [J]
+        pulse_width;         % Pulse width (intensity FWHM) [s]
+        pulse_energy;        % Pulse total energy [J]
 
-        rep_rate;            % Repetition rate [Hz]
-        t0;                  % Pulse center time [s]
+        %rep_rate;            % Repetition rate [Hz]
+        %t0;                  % Pulse center time [s]
 
-        beam_D;              % Beam diameter [m] ??????????????????
+        %beam_D;              % Beam diameter [m]
 
         type;                % Gaussian or "Donut"
         w0;                  % Waist radius at z=z0 [m]
-        z0;                  % Waist location along z [m]
+        z0;                  % Waist location along z axis [m]
         E0;                  % Peak field amplitude at waist center [V/m]
 
-        profile;             % Spatial complex field profile E(r,z) [V/m] ??????????peak
+        profile;             % Spatial field profile matrix E(r,z) [V/m]
     end
 
     methods
-        function obj = laser(wl, pls_wd, pls_enr, bm_D, type, r, phi, z, w0, z0, varargin)
+        % Constructor:
+        function this = laser(wl, pls_wd, pls_energy, type, r, phi, z, w0, z0)
             % Constructs a laser beam
-            %
-            % Inputs:
-            %   wl        wavelength [m]
-            %   pls_wd    pulse width INTENSITY FWHM [s]
-            %   pls_enr   pulse energy [J]
-            %   bm_D      beam diameter [m] (optional)
-            %   type      "Gauss" or "Donut"
-            %   r,phi,z   grids
-            %   w0,z0     waist and waist location
-            %
-            % Optional name-value pairs:
-            %   'rep_rate'  [Hz] default 0 (single pulse)
-            %   't0'        [s]  default 0
+            % =============================================================
+            % INPUTS:
+            %        wl - wavelength [m]
+            %        pls_wd - pulse width (intensity FWHM) [s]
+            %        pls_energy - pulse total energy [J]
+            %        type - beam spatial profile type, "Gauss" or "Donut"
+            %        r - radial coordinate vector [m]
+            %        phi - azimutal coordinate vector [rad]
+            %        z -z coordinate, propagation vector [m]
+            %        w0 - waist radius at z = z0 [m]
+            %        z0 - waist location along z axis [m]
+            % *************************************************************
 
             sp = systemParameters();
 
-            obj.lambda = wl;
-            obj.f = sp.c0 / wl;
-            obj.ang_f = 2*pi*obj.f;
+            this.lambda = wl;
+            this.f = sp.c0 / wl;
+            this.ang_f = 2*pi*this.f;
 
-            obj.pulse_width  = pls_wd;
-            obj.pulse_energy = pls_enr;
+            this.pulse_width  = pls_wd;
+            this.pulse_energy = pls_energy;
 
-            obj.beam_D = bm_D;
+            this.type = string(type);
+            this.w0 = w0;
+            this.z0 = z0;
 
-            obj.type = string(type);
-            obj.w0 = w0;
-            obj.z0 = z0;
+            % Computing correct peak field amplitude E0:
+            this.E0 = this.computeE0FromEnergy();
 
-            % defaults
-            obj.rep_rate = 0;
-            obj.t0 = 0;
-
-            % parse optional name-value args
-            if ~isempty(varargin)
-                for k = 1:2:numel(varargin)
-                    name = lower(string(varargin{k}));
-                    val  = varargin{k+1};
-                    switch name
-                        case "rep_rate"
-                            obj.rep_rate = val;
-                        case "t0"
-                            obj.t0 = val;
-                        otherwise
-                            error("Unknown option '%s'. Valid: 'rep_rate','t0'.", name);
-                    end
-                end
-            end
-
-            % Compute correct E0 from pulse energy, width, waist
-            obj.E0 = obj.computeE0FromEnergy();
-
-            % Build spatial field profile at pulse peak (temporal envelope = 1)
-            obj.profile = obj.beamProfile(obj.type, r, phi, z, obj.w0, obj.z0, obj.E0);
+            % Building spatial field profile:
+            this.profile = this.beamProfile(this.type, r, phi, z, this.w0, this.z0, this.E0);
         end
-
-        function prf = beamProfile(this, type, r, phi, z, w0, z0, E0)
-            % Creates and returns appropriate spatial field profile E(r,z) [V/m]
-            type = string(type);
-
-            if type == "Gauss"
-                prf = GB(r, z, this.lambda, w0, z0, E0);
-            elseif type == "Donut"
-                prf = LGB01(r, phi, z, this.lambda, w0, z0, E0);
-            else
-                error("Inappropriate type. Use 'Gauss' or 'Donut'.");
-            end
-        end
-
+        
         function E0 = computeE0FromEnergy(this)
-            % Compute E0 [V/m] so that the pulse energy matches pulse_energy.
+            % Computes peak electric field amplitude
+            % -------------------------------------------------------------
+            % Calculates E0, the electric field's amplitude at the pulse's
+            % peak at the waist given the pulse's total energy
+            % 
+            % The intensity spatial profile at the waist:
+            %               I(r) = I0 * exp(-2*(r/w0)^2)
+            %              I0 = 0.5 * n * eps0 * c * |E0|^2
             %
-            % Assumptions:
-            %   - intensity spatial profile at waist: I(r) = I0 * exp(-2 r^2 / w0^2)
-            %   - intensity temporal profile: g_I(t) = exp(-4 ln2 * t^2 / tau^2)
-            %   - pulse_width = tau is INTENSITY FWHM
+            % The intensity temporal Gaussian profile is:
+            %                g(t) = exp(-4ln(2)*(t/τ)^2)
+            % where τ is intensity FWHM
             %
-            % Then:
-            %   E_pulse = I0 * (pi w0^2 / 2) * (tau/2)*sqrt(pi/ln2)
-            %   I0 = 0.5 * n * eps0 * c * |E0|^2
-            %
-            % IMPORTANT:
-            %   This scaling is defined at the WAIST plane.
-            %   If z0 is not inside the sample, you're still fine as long as
-            %   you treat E0 as waist-center amplitude.
+            % The total pulse's energy is given by integrating I(r,t) in
+            % both space and time:
+            %           E = I0 * (pi*τ*w0^2/4) * sqrt(pi/ln(2))
+            % =============================================================
+            % INPUT:
+            %        this - this laser-type object
+            % OUTPUT:
+            %        E0 - peak field amplitude at waist center [V/m]
+            % *************************************************************
             
             sp = systemParameters();
-
-            tau = this.pulse_width;
-            w0  = this.w0;
-
-            if tau <= 0 || w0 <= 0
-                error("pulse_width and w0 must be positive.");
-            end
-            if this.pulse_energy < 0
-                error("pulse_energy must be nonnegative.");
-            end
-
-            spatialInt  = (pi*w0^2)/2;
-            temporalInt = (tau/2)*sqrt(pi/log(2));
-
+            
             if this.pulse_energy == 0
                 E0 = 0;
                 return;
             end
+            
+            % Results of the integrals:
+            spatialInt = pi*(this.w0^2)/2;
+            temporalInt = this.pulse_width*sqrt(pi/log(2))/2;
 
-            I0 = this.pulse_energy / (spatialInt * temporalInt);  % [W/m^2]
-            E0 = sqrt(2*I0/(sp.n*sp.eps0*sp.c0));              % [V/m]
+            I0 = this.pulse_energy / (spatialInt * temporalInt);    % [W/m^2]
+            E0 = sqrt(2*I0/(sp.n*sp.eps0*sp.c0));                   % [V/m]
         end
-
-        function a = temporalEnvelopeField(this, t)
-            % Field envelope a(t) for a Gaussian pulse or pulse train.
-            % Returns dimensionless a(t) such that peak = 1.
-            %
-            % Field envelope for intensity-FWHM tau:
-            %   I(t) ~ exp(-4 ln2 (t/tau)^2)
-            % so field envelope is sqrt(I):
-            %   a(t) ~ exp(-2 ln2 (t/tau)^2)
-
-            tau = this.pulse_width;
-            if tau <= 0
-                error("pulse_width must be positive.");
-            end
-
-            if this.rep_rate <= 0
-                % single pulse
-                a = exp(-2*log(2)*((t - this.t0).^2)/(tau^2));
+        
+        function energy = computeEnergyFromE0(this)
+            % Computes pulse's energy
+            % -------------------------------------------------------------
+            % Calculates the pulse's total energy given E0, the electric
+            % field's amplitude peak at the waist
+            % 
+            % The total pulse's energy is given by integrating I(r,t) in
+            % both space and time:
+            %           E = I0 * (pi*τ*w0^2/4) * sqrt(pi/ln(2))
+            % where
+            %              I0 = 0.5 * n * eps0 * c * |E0|^2
+            % =============================================================
+            % INPUT:
+            %        this - this laser-type object
+            % OUTPUT:
+            %        energy - pulse total energy [J]
+            % *************************************************************
+            
+            sp = systemParameters();
+            
+            if this.E0 == 0
+                energy = 0;
                 return;
             end
+            
+            I0 = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.E0)^2; % [W/m^2]
+            
+            energy = I0 * (pi*this.pulse_width*this.w0^2/4) * sqrt(pi/ln(2));    % [J]
+        end
 
-            % pulse train
-            Trep = 1/this.rep_rate;
-            a = zeros(size(t));
+        function prf = beamProfile(this, type, r, phi, z, w0, z0, E0)
+            % Beam profile creator
+            % -------------------------------------------------------------
+            % Creates and returns appropriate spatial field profile E(r,z)
+            % =============================================================
+            % INPUTS:
+            %        this - this laser-type object
+            %        type - beam spatial profile type, "Gauss" or "Donut"
+            %        r - radial coordinate vector [m]
+            %        phi - azimutal ????????????????
+            %        z -z coordinate, propagation vector [m]
+            %        w0 - waist radius at z=z0 [m]
+            %        z0 - waist location along z axis [m]
+            %        E0 - peak field amplitude at waist center [V/m]
+            % OUTPUT:
+            %        prf - spatial profile matrix, Nr x Nz, [V/m]
+            % *************************************************************
 
-            tmin = min(t); tmax = max(t);
-            m_min = floor((tmin - this.t0)/Trep) - 2;
-            m_max = ceil( (tmax - this.t0)/Trep) + 2;
-
-            for m = m_min:m_max
-                tc = this.t0 + m*Trep;
-                a = a + exp(-2*log(2)*((t - tc).^2)/(tau^2));
+            if string(type) == "Gauss"
+                prf = GB(r, z, this.lambda, w0, z0, E0);
+            
+            elseif string(type) == "Donut"
+                prf = LGB01(r, phi, z, this.lambda, w0, z0, E0);
+            
+            else
+                error("Inappropriate type. Please use 'Gauss' or 'Donut'");
             end
         end
         
-        function E = updateProfile(this, profile)
-            this.profile = profile;
-            E = this.profile;
-        end
-
-        function E = fieldProfile(this, t)
-            % Returns full spatio-temporal field E(r,z,t):
-            %   E(r,z,t) = profile(r,z) * a(t)
-            %
-            % Output: Nr x Nz x Nt
-            a = this.temporalEnvelopeField(t); % 1 x Nt (or Nt x 1)
-            E = this.profile .* reshape(a, 1, 1, []);
-        end
-
-        function I = intensityProfilePhysical(this)
-            % Physical intensity at pulse peak (a(t)=1):
-            % I = 0.5 n eps0 c |E|^2  [W/m^2]
-            eps0 = 8.854187817e-12;
-            c0   = 299792458;
-            I = 0.5*this.n_medium*eps0*c0 * abs(this.profile).^2;
-        end
-
-        function I = intensityProfilePhysical_t(this, t)
-            % Physical intensity I(r,z,t) [W/m^2], Nr x Nz x Nt
-            eps0 = 8.854187817e-12;
-            c0   = 299792458;
-
-            a = this.temporalEnvelopeField(t);
-            I_rz = 0.5*this.n_medium*eps0*c0 * abs(this.profile).^2; % Nr x Nz
-            I = I_rz .* reshape(abs(a).^2, 1, 1, []);
-        end
-
-        function [I, Imax] = intensityProfileNormalized(this)
-            % Normalized spatial intensity (peak = 1), Nr x Nz
-            I = abs(this.profile).^2;
-            Imax = max(I(:));
-            I = I / Imax;
-        end
-
-        function I = intensityProfileBLDumped(this, z)
-            % Spatial intensity including Beer-Lambert attenuation:
-            % I(r,z) = I(r,z)*exp(-alpha_base*z)
-            %
-            % Inputs:
-            %   zvec       z vector [m]
-            %   alpha_base absorption coefficient [1/m]
-            %
-            % NOTE: Using exp(-alpha*z) assumes homogeneous alpha_base.
+        function I = intensityProfileBLDumped(this, z)  % Maybe change the alpha when it changes
+            % Builds intensity matrix including Beer-Lmbert's law
+            % -------------------------------------------------------------
+            % Creates and returns peak spatial intensity including
+            % Beer-Lambert's law:
+            %             Imaterial(r,z) = I(r,z)*exp(-α*z)
+            % =============================================================
+            % INPUTS:
+            %        this - this laser-type object
+            %        z -z coordinate, propagation vector [m]
+            % OUTPUT:
+            %        I - spatial intensity profile matrix, Nr x Nz, [W/m^2]
+            % *************************************************************
+            
             sp = systemParameters();
             
-            z = z(:).'; % 1 x Nz
-            I0 = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.E0)^2;   % [W/m^2]
+            z = z(:).';     % 1 x Nz
     
-            % Spatial factor from field profile (already contains E0), but use |E|^2 / |E0|^2
-            spatial = abs(this.profile).^2 / (abs(this.E0)^2);     % dimensionless
-    
-            I = I0 * spatial .* exp(-sp.alpha * z);             % [W/m^2] peak (t at pulse center)
-            %I = abs(this.profile).^2 .* exp(-sp.alpha * z);
+            I = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.profile).^2 .* exp(-sp.alpha * z);
             %I = I / max(I(:));
         end
         
-        % function I = intensityXY(Ir, r, x)
-        %     [X,Y] = meshgrid(x,x);
-        %     R = hypot(X,Y);
-        %     I = interp1(r, Ir, R, 'linear', 0);
-        % end
+        % Update function:
+        function this = updateFieldProfile(this, r, phi, z, w0, z0, E0, type, pls_wd, pulse_energy)
+            % Updates electric field spatial profile (and other parameters)
+            % =============================================================
+            % INPUTS:
+            %        this - this laser-type object
+            %        r - radial coordinate vector [m]
+            %        phi - azimutal coordinate vector [rad]
+            %        z -z coordinate, propagation vector [m]
+            %        w0 - waist radius at z = z0 [m]
+            %        z0 - waist location along z axis [m]
+            %        E0 - peak field amplitude at waist center [V/m]
+            %        type - beam spatial profile type, "Gauss" or "Donut"
+            %        pls_wd - pulse width (intensity FWHM) [s]
+            %        pulse_energy - pulse total energy [J]
+            % OUTPUT:
+            %        this - this updated laser-type object
+            % *************************************************************
 
-        function Trep = period(this)
-            if this.rep_rate <= 0
-                Trep = Inf;
-            else
-                Trep = 1/this.rep_rate;
+            arguments
+                this
+                r
+                phi
+                z
+                w0 double = []              % optional
+                z0 double = []              % optional
+                E0 double = []              % optional (if provided, overrides energy/tau)
+                type string = ""            % optional
+                pls_wd double = []             % optional pulse width (intensity FWHM) [s]
+                pulse_energy double = []    % optional pulse energy [J]
             end
+
+            w0_changed = ~isempty(w0);
+            z0_changed = ~isempty(z0);
+            E0_changed = ~isempty(E0);
+            type_changed = strlength(type) > 0;
+            width_changed = ~isempty(pls_wd);
+            Energy_changed = ~isempty(pulse_energy);
+        
+            % Update stored parameters when provided:
+            if z0_changed, this.z0 = z0;
+            else, z0 = this.z0; end
+        
+            if w0_changed, this.w0 = w0;
+            else, w0 = this.w0; end
+        
+            if width_changed, this.pulse_width = pls_wd;
+            else, pls_wd = this.pulse_width; end
+        
+            if Energy_changed, this.pulse_energy = pulse_energy;
+            else, pulse_energy = this.pulse_energy; end
+        
+            if type_changed, this.type = type;
+            else, type = this.type; end
+        
+            % E0 depends on other parameters:
+            if E0_changed
+                this.E0 = E0;
+        
+                % Update pulse energy based on the new E0, w0 and width:
+                this.pulse_energy = this.computeEnergyFromE0();
+        
+            else
+                % If energy/width/w0 changed, E0 changes too:
+                if Energy_changed || width_changed || w0_changed
+                    this.E0 = this.computeE0FromEnergy();
+                end
+                
+                E0 = this.E0;
+            end
+        
+            % Updating the profile:
+            this.profile = beamProfile(type, r, phi, z, w0, z0, E0);
         end
     end
 end

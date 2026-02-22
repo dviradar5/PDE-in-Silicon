@@ -1,4 +1,4 @@
-%% CHECK SIZES AND UNITS
+%% FINISHED
 
 classdef systemParameters
     % Parameters structure
@@ -42,8 +42,8 @@ classdef systemParameters
         NA = 0.4;
         wl1 = 1550e-9;              % Wavelength [m]
         wl2 = 775e-9;               % Wavelength [m]
-        D1 = 1.2e-3;                % Beam width [?] ??????????
-        D2 = 3e-5;                  % Beam width [?] ??????????
+        %D1 = 1.2e-3;                % Beam width [m]
+        %D2 = 3e-5;                  % Beam width [m]
         alpha = 129620;             % α in Silicon at 775[nm] [1/m]
         %alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m]
     end

@@ -3,8 +3,12 @@
 function prf = GB(r, z, lambda, w0, z0, E0)
     % Gaussian beam profile
     % ---------------------------------------------------------------------
-    % Calculates the electric field (assuming polarizationi x direction),
-    % or the spacial profile of a Gaussian beam
+    % Calculates the electric field (assuming polarization in x direction),
+    % or the spatial profile of a Gaussian beam
+    %
+    % The expression of Gaussian beam is given by:
+    %   E(r,z) = E0 * w0/w(z) * exp(-(r/w(z))^2 -i(k(z+r^2/2R(z))-gouy))
+    % where gouy = arctan(z/zR)
     % =====================================================================
     % INPUTS:
     %        r - radial coordinate vector [m]

@@ -1,4 +1,4 @@
-%% CHECK ASSUMPTION
+%% FINISHED
 
 function N = intensityToCarriers(I, tau, lambda)
     % Converts intensity to carrier concentration
@@ -7,9 +7,9 @@ function N = intensityToCarriers(I, tau, lambda)
     % 
     % Assumes quantum efficiency of 1 (also means that Ne = Nh)
     % 
-    % Fluence calculation:
+    % Fluence calculation takes into account the entire pulse:
     %              I(r,z,t) = I(r,z) * exp(−4ln(2)*(t/τ)^2​)
-    %           => F = ∫​I(t)dt = I(r,z) * sqrt(pi/ln(2)) * τ/2
+    %         => F = ∫​I(r,z,t)dt = I(r,z) * sqrt(pi/ln(2)) * τ/2
     % =====================================================================
     % INPUTS:
     %        I - intensity spatial profile, Nr x Nz

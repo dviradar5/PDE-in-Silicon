@@ -1,9 +1,9 @@
 %% DOCUMENT
-%% CLEAN
+%% CLEAN UP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Main Simulation file
+%% MAIN SIMULATION FILE
 % -------------------------------------------------------------------------
-% defines all the necessary structures, conducts the experiment flow, plots
+% Defines all the necessary structures, conducts the experiment flow, plots
 % graphs and calculates necessary 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -11,7 +11,9 @@ clc; clear;
 %close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Paraneters and vector definitions:
+%% Paraneters and Vector Definitions
+% -------------------------------------------------------------------------
+
 sp = systemParameters();
 
 % Temporal vector intialization:
@@ -26,38 +28,41 @@ Nz = 201;
 
 z = linspace(0, sp.Lz, Nz);
 
-r = linspace(0,sqrt(2)*sp.Lx,Nr);       % 10x10 micron sample so r covers it
+r = linspace(0,sqrt(2)*sp.Lx,Nr);       % 10x10 micron sample
 phi = atan(1);                          % y = x, radial symmetry
 
 x = linspace(-max(r), max(r), 2*Nr-1);
 Nx = numel(x);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ENERGIES, INTENSITY OoM, beam diameter
+%% Pump Beam
+% -------------------------------------------------------------------------
+% NOTE: pump doesn't need to be t-dependant. Time in this simulation can be
+% regarded as the time since when the pump hit the sample.
+
 % Pump parameters:
-pmp_wd = 3e-11;         % Pulse of 30[ps]
-pmp_D = sp.D2;
+pump_width = 3e-11;     % Pulse of 30[ps]
+pump_E = 35e-9;         % Beam total energy [J]
 w0 = 5e-6;
 z0 = 0;                 % Beam waist location
-pump_E = 35e-9;         % Beam total energy [J]       how does it get into account????????
 
 % Pump laser:
-pump = laser(sp.wl2, pmp_wd, pump_E, pmp_D, "Donut", r, phi, z, w0, z0);  % 775[nm]
+pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, w0, z0);  % 775[nm]
 Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plotting pump intensity:
-%PF_beamIntensityPlot_xz(Ipump_xz, z, x, "Pump Intensity [W/m^2]");
+PF_beamIntensityPlot_xz(Ipump_xz, z, x, "Pump Intensity [W/m^2]");
 %PF_beamIntensityPlot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
 
 iz = 1;     % z=0
 %PF_beamIntensityPlot_xy(Ipump(:,iz), r, x, z(iz));
 %PF_beamIntensityPlot_xy(Ipump(:,1)/max(Ipump(:,1)), r, x, 1);
 
-% NOTE: pump doesn't need to be t-dependant. Time in this simulation can be
-% regarded as the time since when the pump hit the sample.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FCC Creation & Diffusion
+% -------------------------------------------------------------------------
+
 % Shining pump beam on the sample, causing e-h generation and diffusion:
 pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
 
@@ -65,22 +70,27 @@ tIdx = [1, 19, 20, 50, 100, 150, 270, Nt];
 %PF_colormapAnimation_xz(pDiff*1e-6, r, z ,x, 1:Nt, "FCC Concentration vs. Time", "FCC concentration [1/cm^3]", false, 50);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Refractive Index Calculation
+% -------------------------------------------------------------------------
+
 %% absorption OoM
 % Calculating the complex refractive index n(r,z,t) (changes due to FCC generation):
 n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 
 it = 12;
+iz = 20;
 PF_complexRefractiveIndex(n_complex(:,:,it), r, z, x, pump.lambda, iz, t(it));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ENERGY, GAUSSIAN PULSE EVELOPE
-% Probe laser:
-probe_wd = 5e-11;   % pulse of 50[ps]  how does it affect calculation?????
-probe_D = sp.D1;
-probe_E = pump.pulse_energy/100;         % [J] 
-probe_w0 = w0;                          % how does it affect calculation?????
+%% Probe Beam
+% -------------------------------------------------------------------------
 
-probe = laser(sp.wl2, probe_wd, probe_E, probe_D, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
+% Probe laser:
+probe_wd = 5e-11;   % Pulse of 50[ps]
+probe_E = pump.pulse_energy/100;        % [J] 
+probe_w0 = w0;
+
+probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 Iprobe = probe.intensityProfileBLDumped(z);
 Iprobe_xz = cylToCart(Iprobe,r,x);
 
@@ -90,7 +100,9 @@ PF_beamIntensityPlot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_FWHM_z(FWHM(Iprobe,r),z,0);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Probe propogation (BPM):
+%% Probe Propogation (BPM)
+% -------------------------------------------------------------------------
+
 Ipropagate = zeros(Nr,Nz,Nt);           % Probe intensity after propogation
 Ipropagate_xz = zeros(Nx,Nz,Nt);
 
@@ -105,7 +117,8 @@ end
 PF_colormapAnimation_xz(Ipropagate,r,z,x,1:Nt,"Probe Propogation", "Intensity [W/m^2]", false, 50)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Comparisons and other calculations:
+%% Comparisons and other calculations
+% -------------------------------------------------------------------------
 
 % Comparing the probe with and without pump:
 it = 11;
@@ -125,5 +138,13 @@ it = 11;
 PF_FWHM_z(fwhm(:,it),z,t(it));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pump energy related effects:
+%% Pump Energy Related Effects
+% -------------------------------------------------------------------------
+
+% Change probe's w0:
+
+
+% Change probe's pulse duration:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

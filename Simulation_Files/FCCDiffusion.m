@@ -1,4 +1,4 @@
-%% Explain generation term
+%% FINISHED
 
 function p = FCCDiffusion(pump, t, r, z)
     % FCC diffusion calculator
@@ -44,11 +44,13 @@ function p = FCCDiffusion(pump, t, r, z)
     p_gen = intensityToCarriers(I, pump.pulse_width, pump.lambda); % [m^-3]
     
     % Generation term:
-    tau_gen = 100e-12;          % 100[ps] FCC generation time
+    tau_gen = 100e-12;%pump.pulse_width;        % 100[ps] FCC generation time
     t0 = 0;
+    
+    % Taking the total carriers density created by the entire pulse and
+    % distrbuting it in time according to a Gaussian envelope:
     g = exp(-4*log(2) * ((t - t0)/tau_gen).^2);
-    g_int = trapz(t, g);    % Integrated G
-    % w distributes the density to time rations based on the gaussian pulse:
+    g_int = trapz(t, g);    % Integrated generation term G
     w = g ./ g_int;         % Normalization
 
     % Crank-Nicolson method with operator splitting:
