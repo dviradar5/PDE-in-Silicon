@@ -4,16 +4,17 @@ function N = intensityToCarriers(I, tau, lambda)
     % Converts intensity to carrier concentration
     % ---------------------------------------------------------------------
     % Calculates electron/hole concentration given the intensity profile
-    % Assumes quantum efficiency of 1 (i.e. Ne = Nh)
+    % 
+    % Assumes quantum efficiency of 1 (also means that Ne = Nh)
+    % 
     % Fluence calculation:
     %              I(r,z,t) = I(r,z) * exp(−4ln(2)*(t/τ)^2​)
     %           => F = ∫​I(t)dt = I(r,z) * sqrt(pi/ln(2)) * τ/2
     % =====================================================================
     % INPUTS:
-    %        I - intensity spacial profile, Nr x Nz
+    %        I - intensity spatial profile, Nr x Nz
     %        tau - gaussian envelope duration [s] 
     %        lambda - beam's wavelength [m]
-    % 
     % OUTPUT:
     %        N - carrier concentration [m^-3]
     % *********************************************************************

@@ -5,6 +5,7 @@ function L = lap1dNeumann(N, d)
     % ---------------------------------------------------------------------
     % Numerically calculates 1D laplacian (d^2/dx^2) of some cartesian
     % coordinate (say x) with Neumann BC (du/dx=0)
+    % 
     % Calculation by:
     %                  u"(i) ≈(u(i−1)​−2u(i)​+u(i+1))/d^2​
     % =====================================================================

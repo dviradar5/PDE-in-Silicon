@@ -1,21 +1,21 @@
 %% FINISHED
 
 function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
-    % Laguerre–Gaussian p=0, l=1 (mode01)
+    % Laguerre–Gaussian with p=0, l=1 (mode01)
     % ---------------------------------------------------------------------
     % Calculates the electric field (assuming polarizationi x direction),
-    % or the spacial profile of a Laguerre-Gaussian beam of mode 01
+    % or the spatial profile of a Laguerre-Gaussian beam of mode 01
     % =====================================================================
     % INPUTS:
     %        r - radial coordinate vector [m]
     %        phi - azimutal coordinate vector [rad]
-    %        z - propagation vector [m]
+    %        z coordinate, propagation vector [m]
     %        lambda - beam's wavelength [m]
     %        w0 - waist radius at z=z0 [m]
     %        E0 - amplitude at the origin, E(0,0)
     %        z0 - waist location along z [m]
     % OUTPUT:
-    %        prf - complex field spacial profile in cylindrical coordinates
+    %        prf - complex field spatial profile in cylindrical coordinates
     % *********************************************************************
     
     Nr = length(r);

@@ -1,20 +1,20 @@
 %% FINISHED
 
 function prf = GB(r, z, lambda, w0, z0, E0)
-    % Gaussian beam
+    % Gaussian beam profile
     % ---------------------------------------------------------------------
     % Calculates the electric field (assuming polarizationi x direction),
     % or the spacial profile of a Gaussian beam
     % =====================================================================
     % INPUTS:
     %        r - radial coordinate vector [m]
-    %        z - propagation vector [m]
+    %        z - z coordinate, propagation vector [m]
     %        lambda - beam's wavelength [m]
     %        w0 - waist radius at z=z0 [m]
     %        E0 - amplitude at the origin, E(0,0)
     %        z0 - waist location along z [m]
     % OUTPUT:
-    %        prf - complex field spacial profile in cylindrical coordinates
+    %        prf - complex field spatial profile in cylindrical coordinates
     % *********************************************************************
     
     Nr = length(r);

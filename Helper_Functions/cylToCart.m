@@ -1,17 +1,17 @@
 %% FINISHED
 
-function Axy = cylToCart(A, r, x)
+function Ax = cylToCart(A, r, x)
     % Cylindrical to cartesian transformation
     % ---------------------------------------------------------------------
-    % Transforms cylindrical vector A(:,iz) to cartesian matrix. A is a
-    % symmetrical cylindrical matrix representing r and z
+    % Transforms cylindrical vector A(:,z) to cartesian matrix, where A is
+    % a symmetrical cylindrical matrix representing r and z
     % =====================================================================
     % INPUTS:
     %        A - matrix, Nr x Nz
     %        r - radial coordinate vector [m]
     %        x - x coordinate vector [m]
     % OUTPUT:
-    %        Pxy - spacial matrix in cartesian coordinates (xz), Nx x Nz
+    %        Ax - spatial matrix in cartesian coordinates (xz), Nx x Nz
     % *********************************************************************
     
     r = r(:);
@@ -21,9 +21,9 @@ function Axy = cylToCart(A, r, x)
     
     R = abs(x);
 
-    Axy = zeros(numel(x), Nz);
+    Ax = zeros(numel(x), Nz);
 
-    for zz = 1:Nz
-        Axy(:,zz) = interp1(r, A(:,zz), R, 'linear', 0);
+    for i = 1:Nz
+        Ax(:,i) = interp1(r, A(:,i), R, 'linear', 0);
     end
 end

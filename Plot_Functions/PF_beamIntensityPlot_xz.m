@@ -20,8 +20,8 @@ function PF_beamIntensityPlot_xz(I, z, x, plotTitle)
     figure;
     imagesc(z*1e6, x*1e6, I);
     axis xy;
-    xlabel('z [mum]');
-    ylabel('x [mum]');
+    xlabel('z [\mum]');
+    ylabel('x [\mum]');
     title(plotTitle);
     colorbar;
     

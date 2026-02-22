@@ -18,7 +18,7 @@ classdef systemParameters
         T = 300;                    % Room temperature [K]
     
         % Silicon parameters:
-        n = 3.48;                   % Refractive index in Silicon (3.9766)
+        n = 3.7139;                 % Silicon's refractive index at 775[nm]
         ni = 1e10;                  % Intrinsic Si carrier concentration [1/cm^3]
         
         % Penetration depth:
@@ -30,22 +30,21 @@ classdef systemParameters
     
         % Diffusion parameters:
         D = 2.6e-4;                 % Diffusion parameter [m^2/s]
-        tau = 2.5e-9;               % Effective recombination time of 25[ns], [s]
-        elt = 50e-12;               % hot electron life time [s]
+        tau = 2.5e-9;               % Effective recombination time [s]
+        elt = 50e-12;               % Hot electron life time [s]
     
         % Drude model parameters:
         tau_D = 1e-14;              % Drude damping time [s]
-        mu_e = 1400e-4;             % electron mobility m^2/(V?s) ?????????
-        mu_h = 450e-4;              % hole mobility m^2/(V?s) ????????
+        mu_e = 1400e-4;             % Electron mobility m^2/(V*s)
+        mu_h = 450e-4;              % Hole mobility m^2/(V*s)
     
         % Laser parameters:
         NA = 0.4;
-        wl1 = 1550e-9;              % wavelength [m]
-        wl2 = 775e-9;               % wavelength [m]
-        D1 = 1.2e-3;                % beam width [?] ??????????
-        D2 = 3e-5;                  % beam width [?] ??????????
-        alpha = 129620;             % α in Si [1/m] ???????????????????????
-        %alpha775 = 1e5;             % α for 775nm in n-type Si acc. to BS [1/m] ??????????
-        %alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m] ????????????
+        wl1 = 1550e-9;              % Wavelength [m]
+        wl2 = 775e-9;               % Wavelength [m]
+        D1 = 1.2e-3;                % Beam width [?] ??????????
+        D2 = 3e-5;                  % Beam width [?] ??????????
+        alpha = 129620;             % α in Silicon at 775[nm] [1/m]
+        %alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m]
     end
 end

@@ -3,8 +3,9 @@
 function L = lap1dNeumannCylR(r, dr)
     % 1D cylindrical laplacian calculator
     % ---------------------------------------------------------------------
-    % Numerically calculates 1D laplacian (1/r*d(rd/dr))/dr) of r in 
+    % Numerically calculates 1D laplacian (1/r)*[d(r*d/dr)/dr] of r in 
     % cylindrical coordinatesb with Neumann BC (du/dr=0)
+    % 
     % Calculation by:
     %         u"(i) ≈ (u(i−1)​−2u(i)​+u(i+1))/dr^2+(u(i+1)​​-u(i-1))/rdr​
     % =====================================================================

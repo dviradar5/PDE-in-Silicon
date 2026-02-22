@@ -5,14 +5,13 @@
 classdef laser
     % Laser Beam Class
     % ---------------------------------------------------------------------
-    % Describes single laser beam (pump/probe) with spatial + temporal pulse
-    % scaling from pulse energy.
+    % Describes single laser beam with spatial and temporal Gaussian pulse  
+    % scaling from pulse energy
     %
     % Conventions used here:
     %   - GB/LGB01 return complex electric field E(r,z) [V/m] when given E0 [V/m]
     %   - pulseEnergy is energy per pulse [J]
     %   - pulse_width is INTENSITY FWHM duration [s] (common in optics)
-    %   - temporal envelope is Gaussian in time
     %
     % *********************************************************************
 
@@ -24,19 +23,17 @@ classdef laser
         pulse_width;         % Intensity FWHM [s]
         pulse_energy;        % Pulse energy [J]
 
-        rep_rate;            % Repetition rate [Hz] (optional; default 0 => single pulse)
-        t0;                  % Pulse center time [s] (default 0)
+        rep_rate;            % Repetition rate [Hz]
+        t0;                  % Pulse center time [s]
 
-        beam_D;              % Beam diameter [m] (optional, not used directly)
+        beam_D;              % Beam diameter [m] ??????????????????
 
-        type;                % "Gauss" or "Donut"
+        type;                % Gaussian or "Donut"
         w0;                  % Waist radius at z=z0 [m]
         z0;                  % Waist location along z [m]
-
-
         E0;                  % Peak field amplitude at waist center [V/m]
 
-        profile;             % Spatial complex field profile E(r,z) [V/m] (for one pulse peak)
+        profile;             % Spatial complex field profile E(r,z) [V/m] ??????????peak
     end
 
     methods

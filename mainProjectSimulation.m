@@ -38,7 +38,7 @@ Nx = numel(x);
 pmp_wd = 3e-11;         % Pulse of 30[ps]
 pmp_D = sp.D2;
 w0 = 5e-6;
-z0 = 0;                 % Beam waist location (-7 in old simulation)
+z0 = 0;                 % Beam waist location
 pump_E = 35e-9;         % Beam total energy [J]       how does it get into account????????
 
 % Pump laser:
@@ -47,7 +47,7 @@ Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plotting pump intensity:
-PF_beamIntensityPlot_xz(Ipump_xz, z, x, "Pump");
+%PF_beamIntensityPlot_xz(Ipump_xz, z, x, "Pump Intensity [W/m^2]");
 %PF_beamIntensityPlot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
 
 iz = 1;     % z=0
@@ -64,28 +64,27 @@ pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
 tIdx = [1, 19, 20, 50, 100, 150, 270, Nt];
 %PF_colormapAnimation_xz(pDiff*1e-6, r, z ,x, 1:Nt, "FCC Concentration vs. Time", "FCC concentration [1/cm^3]", false, 50);
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% absorption OoM
 % Calculating the complex refractive index n(r,z,t) (changes due to FCC generation):
 n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 
-it = 11;
-%PF_complexRefractiveIndex(n_complex(:,:,it), r, z, x, pump.lambda, iz, t(it));
+it = 12;
+PF_complexRefractiveIndex(n_complex(:,:,it), r, z, x, pump.lambda, iz, t(it));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ENERGY, GAUSSIAN PULSE EVELOPE
 % Probe laser:
-probe_wd = 5e-11;   % pulse of 50[ps]
+probe_wd = 5e-11;   % pulse of 50[ps]  how does it affect calculation?????
 probe_D = sp.D1;
-probe_E = pump.pulse_energy/100;         % [J] how does it affect calculation?????
-probe_w0 = 3*w0;                          % how does it affect calculation?????
+probe_E = pump.pulse_energy/100;         % [J] 
+probe_w0 = w0;                          % how does it affect calculation?????
 
 probe = laser(sp.wl2, probe_wd, probe_E, probe_D, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 Iprobe = probe.intensityProfileBLDumped(z);
 Iprobe_xz = cylToCart(Iprobe,r,x);
 
-PF_beamIntensityPlot_xz(Iprobe_xz, z, x, "Probe");
+PF_beamIntensityPlot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_beamIntensityPlot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x, "Probe Normalized");
 
 %PF_FWHM_z(FWHM(Iprobe,r),z,0);

@@ -1,4 +1,4 @@
-%% FINISHED
+%% Explain generation term
 
 function p = FCCDiffusion(pump, t, r, z)
     % FCC diffusion calculator
@@ -20,7 +20,7 @@ function p = FCCDiffusion(pump, t, r, z)
     %        pump - pump laser beam, Laser-type object
     %        t - time vector [s]
     %        r - radial spatial coordinate vector [m] 
-    %        z - z coordinate vector [m]
+    %        z coordinate, propagation vector [m]
     % OUTPUT:
     %        p - FCC distribution, Nr x Nz x Nt, [1/m^3]
     % *********************************************************************
