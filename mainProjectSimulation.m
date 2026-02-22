@@ -4,7 +4,7 @@
 %% Main Simulation file
 % -------------------------------------------------------------------------
 % defines all the necessary structures, conducts the experiment flow, plots
-% graphs and make other calculations
+% graphs and calculates necessary 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
@@ -20,7 +20,7 @@ t = 0:10:tf;
 t = t .* 1e-12;             % Time vector, 0-3[ns], [s]
 Nt = numel(t);
 
-% Spacial vector intialization:
+% Spatial vector intialization:
 Nr = 201;                               % Number of elements
 Nz = 201;
 
