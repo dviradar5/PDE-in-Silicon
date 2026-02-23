@@ -49,7 +49,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     ylabel('n'); ax.YColor = 'm';
     axis tight; grid on;
     xlabel('x [\mum]');
-    legend('\alpha', 'n');
+    legend('n','\alpha');
     title(sprintf('Refraction and Absorption at z=%d[m] at t=%d[ps]',z(iz),it*1e12));
 
 end

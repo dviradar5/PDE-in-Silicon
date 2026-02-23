@@ -95,7 +95,6 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex_rz)
         E_rz(:,iz) = E;
     end
 
-    E_rz = probe.updateProfile(E_rz);
     I_rz = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(E_rz).^2;
 
 end

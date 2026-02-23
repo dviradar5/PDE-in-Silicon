@@ -1,6 +1,6 @@
 %% FINISHED
 
-function PF_probeComparison(Ibefore, Iafter, x, z, it)
+function PF_probeComparison(Ibefore, Iafter, x, z, it, izMax)
     % Compares intensities before and after pump
     % ---------------------------------------------------------------------
     % Plots two colormaps probe intensity before and after pump with
@@ -12,6 +12,7 @@ function PF_probeComparison(Ibefore, Iafter, x, z, it)
     %        x - x coordinate vector [m]
     %        z - z coordinate vector [m]
     %        it - specific time point
+    %        izMax - specific z index where maximal focusing occur
     % *********************************************************************
 
     figure;
@@ -29,5 +30,17 @@ function PF_probeComparison(Ibefore, Iafter, x, z, it)
     ylabel('x [\mum]');
     title(sprintf('Probe Intensity with Pump and %d[ps] Delay',it*1e12));
     colorbar;
+    
+    % Comparing maximal intensity:
+    figure;
+    hold on;
+    plot(x*1e6, Ibefore(:,1), "r", LineWidth=2, LineStyle= ":");   
+    plot(x*1e6, Iafter(:,izMax), "m", LineWidth=2);
+    hold off;
+    axis tight; grid on;
+    xlabel('x [\mum]');
+    ylabel('Intensity [W/m^2]');
+    legend('before','after');
+    title('Maximal Probe Intensity with and without Pump');
 
 end

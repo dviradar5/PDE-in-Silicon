@@ -1,4 +1,4 @@
-%% FINISHED
+%% FIX absorption colorbar
 
 function n = complexRefractiveIndex(pDiff, lambda)
     % Complex refractive index calculator

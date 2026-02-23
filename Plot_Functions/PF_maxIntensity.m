@@ -1,12 +1,9 @@
-%% DOCUMENT
+%% FINISHED
 
 function PF_maxIntensity(I, t)
-    % Compares intensity Plots
+    % Calculates and plots maximal intensity
     % ---------------------------------------------------------------------
-    % Plots two colormaps probe intensity before and after pump with
-    % specific delay to check the affect on the probe beam
-    % Note that we plot the maximal intensity ANYWHERE foor each time point
-    % not at specific depth 
+    % Plots the maximal intensity vs. time
     % =====================================================================
     % INPUTS:
     %        I - intensity distribution matrix, Nx x Nz x Nt, [W/m^2]

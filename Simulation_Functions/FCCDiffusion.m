@@ -1,4 +1,4 @@
-%% FINISHED
+%% Maybe treat holes and electrons differently since the miobility is different
 
 function p = FCCDiffusion(pump, t, r, z)
     % FCC diffusion calculator
