@@ -3,7 +3,7 @@
 function [dn,dalpha] = BennettSoref(Ne, Nh)
     % Bennett-Soref free-carrier refraction & absorption in undoped Si
     % ---------------------------------------------------------------------
-    % Implements Benett&Soref's empirical formulas (at 1550 nm):
+    % Implements Benett&Soref's empirical formulas (only at 1550[nm]!!):
     %               Δn = -8.8e-22*ΔNe - 8.5e-18*(ΔNh)^0.8
     %                  Δα =  8.5e-18*ΔNe + 6.0e-18*ΔNh
     % ΔNe, ΔNh are in 1/cm^3 and Δα is in 1/cm

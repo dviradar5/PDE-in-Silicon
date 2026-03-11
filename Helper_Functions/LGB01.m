@@ -1,4 +1,4 @@
-%% ADD LG EXPRESSION
+%% CHECK zR
 
 function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
     % Laguerre–Gaussian with p=0, l=1 (mode01)
@@ -8,7 +8,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
     % 
     % The expression of Laguerre-Gaussian beam of mode pl is given by:
     %  E(r,z) = E0 * w0/w(z) * (r*sqrt(2)/w(z))^|l| * Lp|l|(2(r/w(z))^2)
-    %           * exp(-i(k(z+r^2/2R(z))+l*phi-(2p+|l|+1)gouy))
+    %           * exp(-i((k(z+r^2/2R(z))+l*phi-(2p+|l|+1)gouy))
     % where Lp|l| is the generalized Lagguerre polynomial (including the
     % normalization constant) and gouy = arctan(z/zR)
     % =====================================================================
@@ -24,6 +24,8 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
     %        prf - complex field spatial profile in cylindrical coordinates
     % *********************************************************************
     
+    sp = systemParameters();
+
     Nr = length(r);
     Nz = length(z);
 
@@ -35,7 +37,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
 
     % Beam constants:
     k  = 2*pi/lambda;
-    zR = pi*w0^2/lambda;
+    zR = pi*sp.n*w0^2/lambda;
     
     % Generalized Laguerre polynom 01:
     L01 = 1;
@@ -62,7 +64,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
         amp = E0 * (w0/w) .* (sqrt(2)*r/w).^abs(l) .* L01 .* exp(-(r.^2)/(w^2));
 
         % Phase:
-        phase = exp(1i * (k*Z - (abs(l)+1)*gouy + k*(r.^2)/(2*R)));
+        phase = exp(-1i * (k*Z - (abs(l)+1)*gouy + k*(r.^2)/(2*R)));
         vort_ph = exp(1i * l * phi);
         
         prf(:,iz) = amp .* vort_ph .* phase;                

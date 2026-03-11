@@ -66,8 +66,7 @@ iz = 1;     % z=0
 pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
 
 % Finding the time when we get maximal concentration:
-[~, linIdx] = max(pDiff(:));
-[~, ~, itMax] = ind2sub(size(pDiff), linIdx);   % itMax = 12 = 110[ps]
+[~, ~, itMax] = findMax(pDiff);   % itMax = 12 = 110[ps]
 
 %pxz = cylToCart(pDiff(:,:,itMax),r,x) * 1e-6;
 %PF_plot_xz(pxz,z,x,"FCC Maximal Concentration in [1/cm^3] at t=110[ps]");
@@ -83,7 +82,10 @@ pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
 % Calculating the complex refractive index n(r,z,t) (changes due to FCC generation):
 n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 
-%PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, iz, t(itMax));
+% Finding the z index where we get maximal absorption:
+[~, izMax, ~] = findMax(imag(n_complex(:,:,itMax)));
+
+%PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, izMax, t(itMax));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Probe Beam
@@ -91,8 +93,8 @@ n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 
 % Probe laser:
 probe_wd = 5e-11;   % Pulse of 50[ps]
-probe_E = pump.pulse_energy/100;        % [J] 
-probe_w0 = 2*w0;
+probe_E = pump.pulse_energy/100;        % [J]
+probe_w0 = 2*w0;                        % CHECKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
 
 probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 Iprobe = probe.intensityProfileBLDumped(z);
@@ -101,13 +103,11 @@ Iprobe_xz = cylToCart(Iprobe,r,x);
 %PF_plot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_plot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x, "Probe Normalized");
 
-%PF_FWHM_z(FWHM(Iprobe,r),z,0);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Probe Propogation (BPM)
 % -------------------------------------------------------------------------
 
-Ipropagate = zeros(Nr,Nz,Nt);           % Probe intensity after propogation
+Ipropagate = zeros(Nr,Nz,Nt);       % Probe intensity after propogation
 Ipropagate_xz = zeros(Nx,Nz,Nt);
 
 for i = 1:Nt
@@ -115,23 +115,56 @@ for i = 1:Nt
     Ipropagate_xz(:,:,i) = cylToCart(Ipropagate(:,:,i),r,x);
 end
 
-%PF_plot_xz(Ipropagate_xz(:,:,itMax), z, x, "Probe Intensity with 110[ps] Delay at Maximum Concentration");
-%PF_plot_xz(Ipropagate_xz/max(Ipropagate_xz(:)), z, x, "Probe Normalized");
-
 % Finding the z index where we get maximal intensity:
 slice = Ipropagate_xz(:,:,itMax);
-[~, linIdx] = max(slice(:));
-[~, izMax] = ind2sub(size(slice), linIdx);
+
+fwhm = nan(1,Nz);
+pk   = nan(1,Nz);
+
+for iz = 1:Nz
+    prof = slice(:,iz);
+
+    % smooth a bit to suppress numerical ripple
+    profS = smoothdata(prof,'sgolay',11);
+
+    pk(iz) = max(profS);
+
+    % FWHM of profS vs x (need x in meters; your x seems already meters)
+    halfMax = 0.5*pk(iz);
+    idx = find(profS >= halfMax);
+
+    if numel(idx) >= 2
+        fwhm(iz) = x(idx(end)) - x(idx(1));  % [m]
+    end
+end
+
+% Ignore the first few z samples (surface artifacts)
+iz0 = 5;                 % tweak (or set by z>some microns)
+valid = (1:Nz) >= iz0 & isfinite(fwhm);
+
+[~, izFocus] = min(fwhm(valid));
+izFocus = find(valid,1,'first') + izFocus - 1;
+
+%PF_plot_xz(slice, z, x, "Probe Intensity with 110[ps] Delay at Maximum Concentration", izFocus);
+%PF_intensity_x(slice(:,izFocus), x, "Probe at best focus (min FWHM)");
+%fprintf("Best focus: z = %.3f um, FWHM = %.3f um\n", z(izFocus)*1e6, fwhm(izFocus)*1e6);
+
+[~, izMax,~] = findMax(Ipropagate_xz(:,:,itMax));
 
 %PF_intensity_x(Ipropagate_xz(:,izMax,itMax),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
 %PF_colormapAnimation_xz(Ipropagate,r,z,x,1:Nt,"Probe Propogation", "Intensity [W/m^2]", false, 50)
+
+%PF_intensity_x(Ipropagate_xz(201,:,itMax),z,"Probe Intensity along x=0 at 110[ps] delay");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Comparisons and Other Calculations
 % -------------------------------------------------------------------------
 
 % Comparing the probe with and without pump:
-%PF_probeComparison(Iprobe_xz, Ipropagate_xz(:,:,itMax), x, z, t(itMax), izMax);
+I = {Iprobe_xz, Ipropagate_xz(:,:,itMax)};      % List of intensities NxxNz
+names = {'0[nJ]','35[nJ]'};
+izList = {izFocus,izFocus};
+%PF_probeComparison(I, names, x, z, t(itMax), izList);
 
 % Checking the maximal intensity vs. delay time:
 %PF_maxIntensity(Ipropagate_xz, t);   
@@ -141,9 +174,12 @@ fwhm = zeros(Nz,Nt);
 
 for i = 1:Nt
     fwhm(:,i) = FWHM(Ipropagate(:,:,i),r);
+    %fwhm(:,i) = FWHM(Ipropagate_xz(:,:,i),x);
 end
 
 PF_FWHM_z(fwhm(:,itMax),z,t(itMax));
+
+%PF_intensity_x(Ipropagate_xz(201,:,itMax),z,"Probe Intensity along x=0 at itmax")
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Pump Energy Related Effects
@@ -161,35 +197,32 @@ PF_FWHM_z(fwhm(:,itMax),z,t(itMax));
 % n_complex64 = complexRefractiveIndex(FCCDiffusion(pump64, t, r, z), pump.lambda);
 % n_complex128 = complexRefractiveIndex(FCCDiffusion(pump128, t, r, z), pump.lambda);
 % 
-% Ipropagate16 = zeros(Nr,Nz,Nt); Ipropagate64 = zeros(Nr,Nz,Nt); Ipropagate128 = zeros(Nr,Nz,Nt);
-% Ipropagate16_xz = zeros(Nx,Nz,Nt); Ipropagate64_xz = zeros(Nx,Nz,Nt); Ipropagate128_xz = zeros(Nx,Nz,Nt);
+% I16 = zeros(Nr,Nz,Nt); I64 = zeros(Nr,Nz,Nt); I128 = zeros(Nr,Nz,Nt);
+% I16_xz = zeros(Nx,Nz,Nt); I64_xz = zeros(Nx,Nz,Nt); I128_xz = zeros(Nx,Nz,Nt);
 % 
-% [~, Ipropagate16(:,:,itMax)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex16(:,:,itMax));
-% Ipropagate16_xz(:,:,itMax) = cylToCart(Ipropagate16(:,:,itMax),r,x);
-% [~, Ipropagate64(:,:,itMax)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex64(:,:,itMax));
-% Ipropagate64_xz(:,:,itMax) = cylToCart(Ipropagate64(:,:,itMax),r,x);
-% [~, Ipropagate128(:,:,itMax)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex128(:,:,itMax));
-% Ipropagate128_xz(:,:,itMax) = cylToCart(Ipropagate128(:,:,itMax),r,x);
+% [~, I16(:,:,itMax)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex16(:,:,itMax));
+% I16_xz(:,:,itMax) = cylToCart(I16(:,:,itMax),r,x);
+% [~, I64(:,:,itMax)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex64(:,:,itMax));
+% I64_xz(:,:,itMax) = cylToCart(I64(:,:,itMax),r,x);
+% [~, I128(:,:,itMax)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex128(:,:,itMax));
+% I128_xz(:,:,itMax) = cylToCart(I128(:,:,itMax),r,x);
 % 
+% [~, iz16,~] = findMax(I16_xz(:,:,itMax));
+% [~, iz64,~] = findMax(I64_xz(:,:,itMax));
+% [~, iz128,~] = findMax(I128_xz(:,:,itMax));
 % 
-% PF_probeComparison(Iprobe_xz, Ipropagate16_xz(:,:,itMax), x, z, t(itMax), izMax);
-% figure;
-% hold on;
-% plot(x*1e6, Iprobe_xz(:,1), "r", LineWidth=2, LineStyle= ":");
-% plot(x*1e6, Ipropagate16_xz(:,102,itMax), "m", LineWidth=2);
-% plot(x*1e6, Ipropagate_xz(:,izMax,itMax), "y", LineWidth=2, LineStyle= '-.');
-% plot(x*1e6, Ipropagate64_xz(:,56,itMax), "c", LineWidth=2, LineStyle= '--');
-% plot(x*1e6, Ipropagate128_xz(:,39,itMax), "b", LineWidth=2,  LineStyle= '-');
-% hold off;
-% axis tight; grid on;
-% xlabel('x [\mum]');ylabel('Intensity [W/m^2]');
-% legend('0[nJ]','16[nJ]','35[nJ]','64[nJ]','128[nJ]');
-% title('Maximal Probe Intensity with Different Pump Energies');
+% I = {Iprobe_xz, I16_xz(:,:,itMax), Ipropagate_xz(:,:,itMax), I64_xz(:,:,itMax), I128_xz(:,:,itMax)};
+% names = {'0[nJ]','16[nJ]','35[nJ]','64[nJ]','128[nJ]'};
+% izList = {1,iz16,izFocus,iz64,iz128};
+% PF_probeComparison(I, names, x, z, t(itMax), izList);
+% 
+% PF_intensity_x(Iprobe_xz(201,:),z,"Probe Intensity along x=0  0")
+% PF_intensity_x(I16_xz(201,:,itMax),z,"Probe Intensity along x=0 at 110[ps] delay 16")
+% PF_intensity_x(I64_xz(201,:,itMax),z,"Probe Intensity along x=0 at 110[ps] delay 64")
+% PF_intensity_x(I128_xz(201,:,itMax),z,"Probe Intensity along x=0 at 110[ps] delay 128")
 
 % Change probe's w0:
 
-
-% Change probe's pulse duration:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

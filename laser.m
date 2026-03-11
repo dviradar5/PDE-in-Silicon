@@ -1,4 +1,5 @@
 %% CHECK BL DUMPING
+%% CHECK PROFILE (ADD n)
 
 classdef laser
     % Laser Beam Class
@@ -13,9 +14,6 @@ classdef laser
 
         pulse_width;         % Pulse width (intensity FWHM) [s]
         pulse_energy;        % Pulse total energy [J]
-
-        %rep_rate;            % Repetition rate [Hz]
-        %t0;                  % Pulse center time [s]
 
         %beam_D;              % Beam diameter [m]
 
@@ -142,7 +140,7 @@ classdef laser
             %        this - this laser-type object
             %        type - beam spatial profile type, "Gauss" or "Donut"
             %        r - radial coordinate vector [m]
-            %        phi - azimutal ????????????????
+            %        phi - azimutal coordinate vector [rad]
             %        z -z coordinate, propagation vector [m]
             %        w0 - waist radius at z=z0 [m]
             %        z0 - waist location along z axis [m]

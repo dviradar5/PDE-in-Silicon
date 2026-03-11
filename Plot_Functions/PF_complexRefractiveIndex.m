@@ -26,6 +26,11 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     % Refractive index:
     figure;
     imagesc(z*1e6, x*1e6, real(n_xz));
+    
+    hold on
+    xline(z(iz)*1e6, '--w', sprintf('z = %.2f \\mum', z(iz)*1e6), LineWidth=3);
+    hold off
+    
     set(gca,'YDir','normal'); axis tight;
     xlabel('z [\mum]'); ylabel('x [\mum]');
     title(sprintf('Refraction at t=%d[ps]',it*1e12));
@@ -34,6 +39,11 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     % Absorption coefficient:
     figure;
     imagesc(z*1e6, x*1e6, n_imag_x);
+    
+    hold on
+    xline(z(iz)*1e6, '--w', sprintf('z = %.2f \\mum', z(iz)*1e6), LineWidth=3);
+    hold off
+    
     set(gca,'YDir','normal'); axis tight;
     xlabel('z [\mum]'); ylabel('x [\mum]');
     title(sprintf('Absorption at t=%d[ps]',it*1e12));
@@ -45,11 +55,13 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     ax = gca;
     yyaxis right;  plot(x*1e6, n_imag_x(:,iz), "r", LineWidth=3, LineStyle= ":");
     ylabel('\alpha [1/cm]'); ax.YColor = 'r';     
+    
     yyaxis left; plot(x*1e6, real(n_xz(:,iz)), "m", LineWidth=3);
     ylabel('n'); ax.YColor = 'm';
+
     axis tight; grid on;
     xlabel('x [\mum]');
     legend('n','\alpha');
-    title(sprintf('Refraction and Absorption at z=%d[m] at t=%d[ps]',z(iz),it*1e12));
+    title(sprintf('Refraction and Absorption at z=%.2d[m] at t=%d[ps]',z(iz),it*1e12));
 
 end

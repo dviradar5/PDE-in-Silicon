@@ -1,46 +1,64 @@
 %% FINISHED
 
-function PF_probeComparison(Ibefore, Iafter, x, z, it, izMax)
-    % Compares intensities before and after pump
+function PF_probeComparison(Ilist, names, x, z, it, izMax)
+    % Compares intensities
     % ---------------------------------------------------------------------
-    % Plots two colormaps probe intensity before and after pump with
-    % specific delay to check the affect on the probe beam
+    % Plots several colormaps of (probe) intensity before and after pump
+    % to check the effect on the probe beam
     % =====================================================================
     % INPUTS:
-    %        Ibefore - intensity distribution matrix before pump, Nx x Nz, [W/m^2]
-    %        Iafter - intensity distribution matrix some time after pump, Nx x Nz, [W/m^2]
+    %        Ilist - list of intensity distribution matrices, where the
+    %                first one is before the pump, Nx x Nz, [W/m^2]
+    %        names - list of intensity titles (for the legend)
     %        x - x coordinate vector [m]
     %        z - z coordinate vector [m]
     %        it - specific time point
-    %        izMax - specific z index where maximal focusing occur
+    %        izMax - list of z index where maximal focusing occur
     % *********************************************************************
+    
+    % Number of intensities to compare:
+    NI = numel(Ilist);
 
     figure;
-    subplot(2,1,1);
-    imagesc(z*1e6, x*1e6, Ibefore);
-    axis xy;
-    ylabel('x [\mum]');
-    title('Probe Intensity without Pump');
-    colorbar;
-    
-    subplot(2,1,2);
-    imagesc(z*1e6, x*1e6, Iafter);
-    axis xy;
-    xlabel('z [\mum]');
-    ylabel('x [\mum]');
-    title(sprintf('Probe Intensity with Pump and %d[ps] Delay',it*1e12));
-    colorbar;
-    
+    for i = 1:NI
+        subplot(NI,1,i);
+        imagesc(z*1e6, x*1e6, Ilist{i});
+        
+        hold on;
+        xline(z(izMax{i})*1e6, '--w', sprintf('z = %.3f \\mum', z(izMax{i})*1e6), LineWidth=3);
+        hold off;
+
+        axis xy;
+        colorbar;
+        
+        xlabel('z [\mum]');
+        ylabel('x [\mum]');
+        title(names{i});
+    end
+    sgtitle(sprintf('Probe Intensity Maps at %.0f ps', it*1e12));
+
     % Comparing maximal intensity:
     figure;
     hold on;
-    plot(x*1e6, Ibefore(:,1), "r", LineWidth=2, LineStyle= ":");   
-    plot(x*1e6, Iafter(:,izMax), "m", LineWidth=2);
+
+    styles = {'-', '--', ':', '-.'};
+    cmap = lines(NI);
+
+    for i = 1:NI
+        I = Ilist{i};
+        iz = izMax{i};
+
+        style = styles{mod(i-1, numel(styles)) + 1};
+
+        plot(x*1e6, I(:,iz), LineWidth=2, LineStyle=style, Color=cmap(i,:), ...
+            DisplayName=sprintf('%s  (z = %.2f \\mum)', names{i}, z(iz)*1e6));
+    end
+
     hold off;
     axis tight; grid on;
     xlabel('x [\mum]');
     ylabel('Intensity [W/m^2]');
-    legend('before','after');
-    title('Maximal Probe Intensity with and without Pump');
+    legend('Location','best');
+    title('Maximal Probe Intensity Profiles');
 
 end

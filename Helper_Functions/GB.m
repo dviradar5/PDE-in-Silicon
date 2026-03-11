@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECK zR
 
 function prf = GB(r, z, lambda, w0, z0, E0)
     % Gaussian beam profile
@@ -21,6 +21,8 @@ function prf = GB(r, z, lambda, w0, z0, E0)
     %        prf - complex field spatial profile in cylindrical coordinates
     % *********************************************************************
     
+    sp = systemParameters();
+
     Nr = length(r);
     Nz = length(z);
 
@@ -28,7 +30,7 @@ function prf = GB(r, z, lambda, w0, z0, E0)
 
     % Beam constants:
     k  = 2*pi/lambda;
-    zR = pi*w0^2/lambda;
+    zR = pi*sp.n*w0^2/lambda;
     
     % Calculating E(x,y,z) for each element in z:
     for iz = 1:Nz

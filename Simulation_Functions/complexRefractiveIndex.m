@@ -1,4 +1,4 @@
-%% FIX absorption colorbar
+%% DRUDE MODEL
 
 function n = complexRefractiveIndex(pDiff, lambda)
     % Complex refractive index calculator
@@ -6,7 +6,7 @@ function n = complexRefractiveIndex(pDiff, lambda)
     % Evaluates the complex refractive index according to Bennett&Soref and
     % FCC diffusion for all space and time
     %                           nc = n + ik
-    %                     k = alpha * lambda / (4*pi)
+    %                      k = α * lambda / (4*pi)
     %                            εr = nc^2
     % =====================================================================
     % INPUTS:
@@ -27,8 +27,15 @@ function n = complexRefractiveIndex(pDiff, lambda)
         N = pDiff(:,:,it);          
     
         % Bennett–Soref expects Ne, Nh at pump wavelength:
-        [dn, dalpha] = BennettSoref(N, N); % Ne = Nh since 1 photon -> e + h
+        %[dn, dalpha] = BennettSoref(N, N); % Ne = Nh since 1 photon -> e + h
         
+        % Adding wavelength dependancy according to Drude model:
+        %dn = dn .* (lambda / 1550e-9)^2;
+        %dalpha = dalpha .* (lambda / 1550e-9)^2;
+        
+        % Drude model:
+        [dn, dalpha] = Drude(N, N, lambda); % Ne = Nh since 1 photon -> e + h
+
         n(:,:,it) = (sp.n + dn) + 1i*(sp.alpha + dalpha)*lambda/(4*pi);
     end
     

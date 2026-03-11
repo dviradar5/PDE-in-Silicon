@@ -14,9 +14,9 @@ function fwhm = FWHM(I, r)
     % OUTPUT:
     %        fwhm - fwhm vector, Nz
     % *********************************************************************
-       
+
     [Nr,Nz] = size(I);
-    
+
     r = r(:);
 
     fwhm = zeros(Nz,1);
@@ -49,3 +49,43 @@ function fwhm = FWHM(I, r)
         fwhm(iz) = 2 * rhalf;
     end
 end
+
+% 2nd implementation using findpeaks:
+% function fwhm_main = FWHM(I, x)
+%     % FWHM calculator function
+%     % ---------------------------------------------------------------------
+%     % Calculates the main lobe's FWHM of a given cylindrical Gaussian
+%     % profile for each z according to:
+%     %                       FWHM(z) = 2*rhalf
+%     % where rhalf is the radius at half the peak due to radial symmetry
+%     %
+%     % Also finds the width of other lobes if exist
+%     % =====================================================================
+%     % INPUTS:
+%     %        I - beam's intensity profile, Nx x Nz [W/m^2]
+%     %        x - x coordinate vector [m]
+%     % OUTPUTS:
+%     %        fwhm_main - main lobe FWHM vector, Nz [m]
+%     % *********************************************************************
+% 
+%     x = x(:);
+%     [~, Nz] = size(I);
+% 
+%     fwhm_main  = zeros(Nz,1);
+% 
+%     for iz = 1:Nz
+%         Icol = I(:,iz);
+% 
+%         % Find all peaks and their widths at half peak:
+%         [pks, ~, w] = findpeaks(Icol, x,'WidthReference', 'halfheight');
+% 
+%         if isempty(pks)
+%             continue
+%         end
+% 
+%         % Main lobe is the strongest peak:
+%         [~, iMain] = max(pks);
+% 
+%         fwhm_main(iz) = w(iMain);   % Radial symmetry
+%     end
+% end

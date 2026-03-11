@@ -1,4 +1,4 @@
-%% FINISHED
+%% ADD FWHM LINE
 
 function PF_intensity_x(I,x, plotTitle)
     % Intensity plotter
