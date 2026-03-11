@@ -94,7 +94,7 @@ n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 % Probe laser:
 probe_wd = 5e-11;   % Pulse of 50[ps]
 probe_E = pump.pulse_energy/100;        % [J]
-probe_w0 = 2*w0;                        % CHECKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+probe_w0 = 2*w0;                        
 
 probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 Iprobe = probe.intensityProfileBLDumped(z);
@@ -116,39 +116,6 @@ for i = 1:Nt
 end
 
 % Finding the z index where we get maximal intensity:
-slice = Ipropagate_xz(:,:,itMax);
-
-fwhm = nan(1,Nz);
-pk   = nan(1,Nz);
-
-for iz = 1:Nz
-    prof = slice(:,iz);
-
-    % smooth a bit to suppress numerical ripple
-    profS = smoothdata(prof,'sgolay',11);
-
-    pk(iz) = max(profS);
-
-    % FWHM of profS vs x (need x in meters; your x seems already meters)
-    halfMax = 0.5*pk(iz);
-    idx = find(profS >= halfMax);
-
-    if numel(idx) >= 2
-        fwhm(iz) = x(idx(end)) - x(idx(1));  % [m]
-    end
-end
-
-% Ignore the first few z samples (surface artifacts)
-iz0 = 5;                 % tweak (or set by z>some microns)
-valid = (1:Nz) >= iz0 & isfinite(fwhm);
-
-[~, izFocus] = min(fwhm(valid));
-izFocus = find(valid,1,'first') + izFocus - 1;
-
-%PF_plot_xz(slice, z, x, "Probe Intensity with 110[ps] Delay at Maximum Concentration", izFocus);
-%PF_intensity_x(slice(:,izFocus), x, "Probe at best focus (min FWHM)");
-%fprintf("Best focus: z = %.3f um, FWHM = %.3f um\n", z(izFocus)*1e6, fwhm(izFocus)*1e6);
-
 [~, izMax,~] = findMax(Ipropagate_xz(:,:,itMax));
 
 %PF_intensity_x(Ipropagate_xz(:,izMax,itMax),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
@@ -163,7 +130,7 @@ izFocus = find(valid,1,'first') + izFocus - 1;
 % Comparing the probe with and without pump:
 I = {Iprobe_xz, Ipropagate_xz(:,:,itMax)};      % List of intensities NxxNz
 names = {'0[nJ]','35[nJ]'};
-izList = {izFocus,izFocus};
+izList = {izMax,izMax};
 %PF_probeComparison(I, names, x, z, t(itMax), izList);
 
 % Checking the maximal intensity vs. delay time:
