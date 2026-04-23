@@ -1,5 +1,4 @@
 %% Maybe treat holes and electrons differently since the mobility is different
-%% CHECK GENERATION
 
 function p = FCCDiffusion(pump, t, r, z)
     % FCC diffusion calculator

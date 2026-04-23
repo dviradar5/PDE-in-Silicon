@@ -179,7 +179,6 @@ classdef laser
             z = z(:).';     % 1 x Nz
     
             I = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.profile).^2 .* exp(-sp.alpha * z);
-            %I = I / max(I(:));
         end
         
         % Update function:

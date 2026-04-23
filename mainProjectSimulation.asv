@@ -109,15 +109,6 @@ Iprobe_xz = cylToCart(Iprobe,r,x);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creating FCC slices matrices (FCC only at specific iz and ni elsewhere)
-[deltaFWHM_all, minFWHM_all, izSlices] = sliceContribution( ...
-    pDiff, itMax, sp, pump, probe, r, z, 5);
-
-[bestDelta, bestIdx] = max(deltaFWHM_all);
-best_iz = izSlices(bestIdx);
-
-fprintf('Best contributing slice: iz = %d, z = %.2f um\n', best_iz, z(best_iz)*1e6);
-fprintf('Minimum FWHM = %.4e m\n', minFWHM_all(bestIdx));
-fprintf('Improvement over baseline = %.4e m\n', bestDelta);
 
 s01 = sp.ni * ones(Nr,Nz);
 s01(:,3) = pDiff(:,3,itMax);
@@ -127,7 +118,7 @@ I01_xz = cylToCart(I01,r,x);
 PF_plot_xz(I01_xz, z, x, "Probe Intensity [W/m^2]");
 [~, iz01, ~] = findMax(imag(n01));
 
-I = {Iprobe_xz, I01_xz};      % List of intensities Nx x Nz
+I = {Iprobe_xz, I01_xz};      % List of intensities NxxNz
 names = {'0[nJ]','slice 0.1 micron'};
 izList = {izMax,iz01};
 PF_probeComparison(I, names, x, z, t(itMax), izList);

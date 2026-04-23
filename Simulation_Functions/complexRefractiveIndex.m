@@ -1,4 +1,4 @@
-%% DRUDE MODEL
+%% FINISHED
 
 function n = complexRefractiveIndex(pDiff, lambda)
     % Complex refractive index calculator

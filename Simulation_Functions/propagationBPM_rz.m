@@ -1,5 +1,4 @@
 %% Maybe change the n in the intensity because it changes
-%% e^iomegat
 
 function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
     % Beam propagation calcualtor

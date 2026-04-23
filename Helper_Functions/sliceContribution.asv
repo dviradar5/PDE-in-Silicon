@@ -1,0 +1,34 @@
+function [deltaFWHM_all, minFWHM_all, izSlices] = sliceContribution( ...
+    pDiff, itMax, sp, pump, probe, r, z, dzStep)
+
+    Nr = size(pDiff,1);
+    Nz = size(pDiff,2);
+    
+    izSlices = 3:dzStep:Nz;
+    
+    n_base = complexRefractiveIndex(sp.ni * ones(Nr,Nz), pump.lambda);
+    [~, I_base] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_base);
+    FWHM_base = FWHM(I_base, r);
+    minFWHM_base = min(FWHM_base);
+    
+    numSlices = numel(izSlices);
+    minFWHM_all   = zeros(1,numSlices);
+    deltaFWHM_all = zeros(1,numSlices);
+    
+    for k = 1:numSlices
+        iz = izSlices(k);
+    
+        s = sp.ni * ones(Nr,Nz);
+        
+        for l = 0:
+        s(:,iz) = pDiff(:,iz,itMax);
+    
+        n_slice = complexRefractiveIndex(s, pump.lambda);
+        [~, I_slice] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_slice);
+    
+        FWHM_slice = FWHM(I_slice, r);
+        minFWHM_all(k) = min(FWHM_slice);
+    
+        deltaFWHM_all(k) = minFWHM_base - minFWHM_all(k);
+    end
+end

@@ -1,5 +1,4 @@
 %% CHECK zR
-%% MAKE genral mode
 
 function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
     % Laguerre–Gaussian with p=0, l=1 (mode01)
