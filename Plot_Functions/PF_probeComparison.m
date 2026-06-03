@@ -28,13 +28,12 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax)
         xline(z(izMax{i})*1e6, '--w', sprintf('z = %.3f \\mum', z(izMax{i})*1e6), LineWidth=3);
         hold off;
 
-        axis xy;
-        colorbar;
+        axis xy; colorbar;
         
-        xlabel('z [\mum]');
         ylabel('x [\mum]');
         title(names{i});
     end
+    xlabel('z [\mum]');
     sgtitle(sprintf('Probe Intensity Maps at %.0f ps', it*1e12));
 
     % Comparing maximal intensity:

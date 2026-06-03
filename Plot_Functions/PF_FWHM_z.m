@@ -1,6 +1,6 @@
-%% COMBINE WITH SIMILAR PLOTTING FUNCTIONS
+%% FINISHED
 
-function PF_FWHM_z(fwhm, z, it)
+function PF_FWHM_z(fwhm, z, plotTitle)
     % FWHM plotter
     % ---------------------------------------------------------------------
     % Plots FWHM vs. 
@@ -8,12 +8,24 @@ function PF_FWHM_z(fwhm, z, it)
     % INPUTS:
     %        I - beam's intensity profile, Nr x Nz [J]
     %        z - z coordinate vector [m]
-    %        it - specific time point 
+    %        plotTitle - plot title, string 
     % *********************************************************************
+    
+    if nargin < 3
+        plotTitle = 'FWHM';
+    end
+    
+    [minFWHM,i] = min(fwhm);
+    fprintf('Minimum FWHM: %.4e m, Achieved at z = %.2f um\n', minFWHM, z(i)*1e6);
 
     figure;
-    plot(z*1e6, fwhm*1e6);
-    axis tight; grid on;
+    plot(z*1e6, fwhm*1e6,HandleVisibility="off");
+    hold on;
+    plot(z(i)*1e6,minFWHM*1e6,'x',DisplayName="Minimum", MarkerSize=10);
+    hold off;
+    
+    grid on;
     xlabel('z [\mum]'); ylabel('FWHM [\mum]');
-    title(sprintf('FWHM at %d[ps]', it*1e12));
+    title(plotTitle);
+    legend show;
 end

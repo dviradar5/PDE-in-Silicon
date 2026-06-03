@@ -19,9 +19,11 @@ function [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump
     % OUTPUTS:
     %        pDiff - FCC distribution, Nr x Nz x Nt, [1/m^3]
     %        n_complex - complex refractive index matrix at specific time, Nr x Nz
-    %        Ipropagate - intensity in the sample, Nr x Nz [W/m^2]
-    %        Ipropagate_xz - intensity in the sample, Nx x Nz [W/m^2]
+    %        Ipropagate - intensity in the sample, Nr x Nz x Nt [W/m^2]
+    %        Ipropagate_xz - intensity in the sample, Nx x Nz x Nt [W/m^2]
     % *********************************************************************
+
+    %sp = systemParameters();
 
     Nx = numel(x);
     Nr = numel(r);
@@ -33,7 +35,10 @@ function [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump
         
     % Calculating the complex refractive index n(r,z,t) (changes due to FCC generation):
     n_complex = complexRefractiveIndex(pDiff, pump.lambda);
-        
+    
+    %n_real_only = real(n_complex);
+    %n_abs_only  = sp.ni + 1i*imag(n_complex);
+    
     % Probe Propogation:
     Ipropagate = zeros(Nr,Nz,Nt);       % Probe intensity after propogation
     Ipropagate_xz = zeros(Nx,Nz,Nt);

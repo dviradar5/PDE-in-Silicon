@@ -1,4 +1,4 @@
-%% Maybe treat holes and electrons differently since the mobility is different
+%% FINISHED
 
 function p = FCCDiffusion(pump, t, r, z)
     % FCC diffusion calculator

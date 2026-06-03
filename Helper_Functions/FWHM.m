@@ -1,54 +1,54 @@
-%% FINISHED
+%% FIX For LG
 
-function fwhm = FWHM(I, r)
-    % FWHM calculator function
-    % ---------------------------------------------------------------------
-    % Calculates the FWHM of a given cartesian Gaussian profile for each
-    % z according to:
-    %                       FWHM(z) = 2*rhalf
-    % where rhalf is the radius at half the peak
-    % =====================================================================
-    % INPUTS:
-    %        I - beam's intensity profile, Nr x Nz [W/m^2]
-    %        r - radial coordinate vector [m]
-    % OUTPUT:
-    %        fwhm - fwhm vector, Nz
-    % *********************************************************************
-
-    [Nr,Nz] = size(I);
-
-    r = r(:);
-
-    fwhm = zeros(Nz,1);
-
-    for iz = 1:Nz
-        Icol = I(:, iz);
-        hm = 0.5 * max(Icol);
-
-        % Central-lobe mask
-        mask = (Icol >= hm);
-
-        % Find end index of the connected region starting at r=0
-        k_end = find(~mask, 1, 'first') - 1;
-
-        if k_end >= Nr
-            continue
-        end
-
-        % Interpolate crossing between k_end (>=hm) and k_end+1 (<hm):
-        r1 = r(k_end); r2 = r(k_end + 1);
-        I1 = Icol(k_end); I2 = Icol(k_end + 1);
-
-        % Avoid division by zero:
-        if I2 == I1
-            rhalf = r1;
-        else
-            rhalf = r1 + (hm - I1) * (r2 - r1) / (I2 - I1);
-        end
-
-        fwhm(iz) = 2 * rhalf;
-    end
-end
+% function fwhm = FWHM(I, r)
+%     % FWHM calculator function
+%     % ---------------------------------------------------------------------
+%     % Calculates the FWHM of a given cartesian Gaussian profile for each
+%     % z according to:
+%     %                       FWHM(z) = 2*rhalf
+%     % where rhalf is the radius at half the peak
+%     % =====================================================================
+%     % INPUTS:
+%     %        I - beam's intensity profile, Nr x Nz [W/m^2]
+%     %        r - radial coordinate vector [m]
+%     % OUTPUT:
+%     %        fwhm - fwhm vector, Nz
+%     % *********************************************************************
+% 
+%     [Nr,Nz] = size(I);
+% 
+%     r = r(:);
+% 
+%     fwhm = zeros(Nz,1);
+% 
+%     for iz = 1:Nz
+%         Icol = I(:, iz);
+%         hm = 0.5 * max(Icol);
+% 
+%         % Central-lobe mask:
+%         mask = (Icol >= hm);
+% 
+%         % Find end index of the connected region starting at r=0:
+%         k_end = find(~mask, 1, 'first') - 1;
+% 
+%         if k_end >= Nr
+%             continue
+%         end
+% 
+%         % Interpolate crossing between k_end (>=hm) and k_end+1 (<hm):
+%         r1 = r(k_end); r2 = r(k_end + 1);
+%         I1 = Icol(k_end); I2 = Icol(k_end + 1);
+% 
+%         % Avoid division by zero:
+%         if I2 == I1
+%             rhalf = r1;
+%         else
+%             rhalf = r1 + (hm - I1) * (r2 - r1) / (I2 - I1);
+%         end
+% 
+%         fwhm(iz) = 2 * rhalf;
+%     end
+% end
 
 % 2nd implementation using findpeaks:
 % function fwhm_main = FWHM(I, x)
@@ -89,3 +89,81 @@ end
 %         fwhm_main(iz) = w(iMain);   % Radial symmetry
 %     end
 % end
+
+function fwhmVec = FWHM(I, r)
+    % FWHM calculator function
+    % ---------------------------------------------------------------------
+    % Calculates the main lobe's FWHM of a given cylindrical Gaussian
+    % profile for each z using interpolation and according to:
+    %                       FWHM(z) = 2*rhalf
+    % where rhalf is the radius at half the peak due to radial symmetry
+    % =====================================================================
+    % INPUTS:
+    %        I - beam's intensity profile, Nr x Nz [W/m^2]
+    %        r - radial coordinate vector [m]
+    % OUTPUTS:
+    %        fwhmVec - FWHM vector, Nz [m]
+    % *********************************************************************
+
+    r = r(:);              % make column vector
+    [Nr, Nz] = size(I);
+
+    if length(r) ~= Nr
+        error("Length of r must match number of rows in I.");
+    end
+
+    fwhmVec = NaN(1, Nz);
+
+    for iz = 1:Nz
+        profile = I(:, iz);
+
+        % Remove possible numerical junk
+        profile = real(profile);
+        profile(profile < 0) = 0;
+
+        Imax = max(profile);
+
+        if Imax <= 0 || isnan(Imax)
+            fwhmVec(iz) = NaN;
+            continue;
+        end
+
+        halfMax = Imax / 2;
+
+        % For radial Gaussian-like beam, assume peak is near r = 0
+        [~, iMax] = max(profile);
+
+        % Search only after the peak
+        idx = find(profile(iMax:end) <= halfMax, 1, 'first');
+
+        if isempty(idx)
+            % Profile never dropped below half maximum inside simulation window
+            fwhmVec(iz) = NaN;
+            continue;
+        end
+
+        i2 = iMax + idx - 1;
+        i1 = i2 - 1;
+
+        if i1 < 1 || i2 > Nr
+            fwhmVec(iz) = NaN;
+            continue;
+        end
+
+        % Linear interpolation between points around half maximum
+        r1 = r(i1);
+        r2 = r(i2);
+
+        I1 = profile(i1);
+        I2 = profile(i2);
+
+        if I2 == I1
+            rHalf = r2;
+        else
+            rHalf = r1 + (halfMax - I1) * (r2 - r1) / (I2 - I1);
+        end
+
+        % radial profile, so full width is diameter
+        fwhmVec(iz) = 2 * rHalf;
+    end
+end

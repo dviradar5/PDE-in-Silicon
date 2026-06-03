@@ -1,4 +1,3 @@
-%% CHECK zR
 %% MAKE genral mode
 
 function prf = LGB01(r, phi, z, lambda, w0, z0, E0)

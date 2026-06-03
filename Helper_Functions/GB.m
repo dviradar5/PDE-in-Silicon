@@ -1,4 +1,4 @@
-%% CHECK zR
+%% FINISHED
 
 function prf = GB(r, z, lambda, w0, z0, E0)
     % Gaussian beam profile

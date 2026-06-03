@@ -7,7 +7,7 @@ function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title, lockClim
     % Saves the video as .mp4 file.
     % =====================================================================
     % INPUTS:
-    %        Arz - matrix, Nr x Nz
+    %        Arz - matrix, Nr x Nz x Nt
     %        r - radial spacial coordinate vector [m] 
     %        z - z coordinate vector [m] 
     %        x - x coordinate vector [m]
