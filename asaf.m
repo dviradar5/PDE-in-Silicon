@@ -8,6 +8,10 @@
 % that it created, this way we don't need to implement it into the
 % simulation, only check whether the BE-shrunk pump values corresponds to
 % the probe values
+%
+% Maybe its wrong to think that way, since the beam expender also made it
+% denser and more parallel, so the effects along the sample are also
+% different
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear; 
@@ -52,11 +56,12 @@ z0 = 8e-6;                              % Beam waist location
 
 % Pump laser:
 pump = laser(sp.wl2, pump_wd, pump_E, "Donut", r, phi, z, w0, z0);  % 775[nm]
+
 Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plots:
-%PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at Surface (z=0)", "Intensity [W/cm^2]");
+PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at Surface (z=0)", "Intensity [W/cm^2]");
 PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at Sample End",'Intensity [W/cm^2]');
 %PF_FWHM_z(FWHM(Ipump,r),z) %FIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -71,16 +76,17 @@ probe_w0 = 2.28e-6;
 
 % Probe laser:
 probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
+
 Iprobe = probe.intensityProfileBLDumped(z);
 Iprobe_xz = cylToCart(Iprobe,r,x);
 
 % Plots:
-%PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at Surface (z=0)",'Intensity [W/cm^2]',[]);
+PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at Surface (z=0)",'Intensity [W/cm^2]',[]);
 PF_x(Iprobe_xz(:,end)*1e-4,x,"Undisturbed Probe Intensity at Sample End",'Intensity [W/cm^2]',[]);
-%PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
+PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Parameter Optimization Tests
+%% Parameter Optimization and Other Tests
 % =========================================================================
 
 % Checking for the optimal waist, waist location and energy:
@@ -93,6 +99,10 @@ w0_vec = (1.17:0.005:1.2)*1e-6;
 
 %[opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe);
 
+% Checking we're under the destructive intensity:
+damageThreshold(Ipump, pump_wd, sp.wl2);
+damageThreshold(Iprobe, probe_wd, sp.wl2);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Simulation Run
 % =========================================================================
@@ -100,31 +110,34 @@ w0_vec = (1.17:0.005:1.2)*1e-6;
 [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump,probe);
 [~, ~, itMax] = findMax(pDiff)
 
-prpFWHM = FWHM(Ipropagate(:,:,itMax),r);
-%[~,i] = min(prpFWHM)                           % Minimal FWHM
+% Checking we're under the destructive intensity:
+damageThreshold(Ipropagate, probe_wd, sp.wl2);
 
 [~, i] = findMax(Ipropagate_xz(:,:,itMax))      % Maximum intensity
+
+prpFWHM = FWHM(Ipropagate(:,:,itMax),r);
+%[~,i] = min(prpFWHM)                           % Minimal FWHM
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Other Plots
 % =========================================================================
 
 % Pump:
-%PF_beamIntensityPlot_xy(Ipump(:,1), r, x);
+PF_beamIntensityPlot_xy(Ipump(:,1), r, x);
 
 % Original probe:
-%PF_x_alongz(Iprobe_xz*1e-4, x, z,"Undisturbed Probe Intensity",'Intensity [W/cm^2]');
-%PF_x(Iprobe_xz(:,i)*1e-4,x,"Undisturbed Probe Intensity at Maximum Intensity",'Intensity [W/cm^2]',[]);
-%PF_beamIntensityPlot_xy(Iprobe(:,1), r, x);
+PF_x_alongz(Iprobe_xz*1e-4, x, z,"Undisturbed Probe Intensity",'Intensity [W/cm^2]');
+PF_x(Iprobe_xz(:,i)*1e-4,x,"Undisturbed Probe Intensity at Maximum Intensity",'Intensity [W/cm^2]',[]);
+PF_beamIntensityPlot_xy(Iprobe(:,1)*1e-4, r, x,"Undisturbed Probe Intensity at Front Surface [W/cm^2]");
 
 % Complex refractive index:
-%PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, i, t(itMax));
+PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, i, t(itMax));
 
 % Propagated probe:
-%PF_x_alongz(Ipropagate_xz(:,:,itMax)*1e-4, x, z,"Propagated Probe Intensity",'Intensity [W/cm^2]');
-%PF_x(Ipropagate_xz(:,i,itMax)*1e-4,x,"Propagated Probe Intensity at Maximum Intensity",'Intensity [W/cm^2]');
-%PF_x(Ipropagate_xz(:,Nz,itMax)*1e-4,x,"Propagated Probe Intensity at Sample End",'Intensity [W/cm^2]');
-%PF_beamIntensityPlot_xy(Ipropagate(:,i,itMax)*1e-4, r, x, 'Propagated Probe Intensity [W/cm^2]');
+PF_x_alongz(Ipropagate_xz(:,:,itMax)*1e-4, x, z,"Propagated Probe Intensity",'Intensity [W/cm^2]');
+PF_x(Ipropagate_xz(:,i,itMax)*1e-4,x,"Propagated Probe Intensity at Maximum Intensity",'Intensity [W/cm^2]');
+PF_x(Ipropagate_xz(:,Nz,itMax)*1e-4,x,"Propagated Probe Intensity at Sample End",'Intensity [W/cm^2]');
+PF_beamIntensityPlot_xy(Ipropagate(:,i,itMax)*1e-4, r, x, 'Propagated Probe Intensity at Maximum Intensity [W/cm^2]');
 
 % FWHM:
-%PF_FWHM_z(prpFWHM,z,"Propagated Probe FWHM");
+PF_FWHM_z(prpFWHM,z,"Propagated Probe FWHM");

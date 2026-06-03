@@ -1,5 +1,6 @@
 %% CHECK BL DUMPING
 %% CHECK PROFILE (ADD n)
+%% Check Beam Diameter
 
 classdef laser
     % Laser Beam Class
@@ -160,10 +161,26 @@ classdef laser
             end
         end
         
+        function I = intensityProfile(this)
+            % Builds intensity matrix
+            % -------------------------------------------------------------
+            % Calculates and returns peak spatial intensity
+            % =============================================================
+            % INPUT:
+            %        this - this laser-type object
+            % OUTPUT:
+            %        I - spatial intensity profile matrix, Nr x Nz, [W/m^2]
+            % *************************************************************
+            
+            sp = systemParameters();
+                
+            I = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.profile).^2;
+        end
+
         function I = intensityProfileBLDumped(this, z)  % Maybe change the alpha when it changes
             % Builds intensity matrix including Beer-Lmbert's law
             % -------------------------------------------------------------
-            % Creates and returns peak spatial intensity including
+            % Calculates and returns peak spatial intensity including
             % Beer-Lambert's law:
             %             Imaterial(r,z) = I(r,z)*exp(-α*z)
             % =============================================================
@@ -178,7 +195,9 @@ classdef laser
             
             z = z(:).';     % 1 x Nz
     
-            I = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.profile).^2 .* exp(-sp.alpha * z);
+            I = intensityProfile(this) .* exp(-sp.alpha * z);
+
+
         end
         
         % Update function:
