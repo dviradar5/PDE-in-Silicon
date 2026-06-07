@@ -16,8 +16,6 @@ classdef laser
         pulse_width;         % Pulse width (intensity FWHM) [s]
         pulse_energy;        % Pulse total energy [J]
 
-        %beam_D;              % Beam diameter [m]
-
         type;                % Gaussian or "Donut"
         w0;                  % Waist radius at z=z0 [m]
         z0;                  % Waist location along z axis [m]
@@ -39,7 +37,7 @@ classdef laser
             %        r - radial coordinate vector [m]
             %        phi - azimutal coordinate vector [rad]
             %        z -z coordinate, propagation vector [m]
-            %        w0 - waist radius at z = z0 [m]
+            %        w0 - waist radius [m]
             %        z0 - waist location along z axis [m]
             % *************************************************************
 

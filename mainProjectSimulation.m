@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
-%close all;
+close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Paraneters and Vector Definitions
@@ -15,18 +15,18 @@ clc; clear;
 sp = systemParameters();
 
 % Temporal vector intialization:
-tf = 3000;                  % 3[ns]
+tf = 3000;                              % 3[ns]
 t = 0:10:tf;
-t = t .* 1e-12;             % Time vector, 0-3[ns], [s]
+t = t .* 1e-12;                         % Time vector, 0-3[ns], [s]
 Nt = numel(t);
 
 % Spatial vectors intialization:
 Nr = 501;                               % Number of elements
 Nz = 501;
 
-z = linspace(0, sp.Lz, Nz);
+z = linspace(0, sp.Lz2, Nz);            % 25 micron
 
-r = linspace(0,sp.Lx,Nr);       % 10x10 micron sample
+r = linspace(0,sp.Lx,Nr);               % 10x10 micron sample
 phi = atan(1);                          % y = x, radial symmetry
 
 x = linspace(-sp.Lx, sp.Lx, 2*Nr-1);
@@ -42,16 +42,16 @@ Nx = numel(x);
 % Pump parameters:
 pump_width = 3e-11;     % Pulse of 30[ps]
 pump_E = 35e-9;         % Beam total energy [J]
-w0 = 5e-6;
+pump_w0 = 2.7e-6;                       
 z0 = 5e-6;                 % Beam waist location
 
 % Pump laser:
-pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, w0, z0);  % 775[nm]
+pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0);  % 775[nm]
 Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plotting pump intensity:
-%PF_plot_xz(Ipump_xz*1e-4, z, x, "Pump Intensity [W/cm^2]");
+PF_plot_xz(Ipump_xz*1e-4, z, x, "Pump Intensity [W/cm^2]");
 %PF_plot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
 %PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at Surface (z=0)","Intensity [W/cm^2]",'Intensity [W/cm^2]')
 
@@ -97,7 +97,7 @@ n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 % Probe laser:
 probe_wd = 5e-11;   % Pulse of 50[ps]
 probe_E = pump.pulse_energy/100;        % [J]
-probe_w0 = 2.38e-6;                     % Like in Nadav's paper
+probe_w0 = 2.7e-6;                       
 
 probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 Iprobe = probe.intensityProfileBLDumped(z);
@@ -105,7 +105,7 @@ Iprobe_xz = cylToCart(Iprobe,r,x);
 
 %PF_plot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_plot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x, "Probe Normalized");
-%PF_x(Iprobe_xz(:,1),x,"Undisturbed Probe Intensity at Surface (z=0)");
+PF_x(Iprobe_xz(:,1),x,"Undisturbed Probe Intensity at Surface (z=0)");
 
 %absorptionDepth(Iprobe(1,:),z,probe.lambda);
 
@@ -153,8 +153,9 @@ prpFWHM = FWHM(I(:,:),r);
 %PF_x(Ipropogate_xz(:,izMax,itMax),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
 %PF_plot_xz(I_xz,z,x,"Probe Intensity 110[ps] delay",izMax);
 % PF_x_alongz(Iprobe_xz,x,z,"Undisturbed Probe Intensity 110[ps] delay");
-% PF_x_alongz(I_xz,x,z,"Probe Intensity 110[ps] delay");
-% PF_x(I_xz(:,end),x,"Probe Intensity at sample end and 110[ps] delay");
+PF_x(I_xz(:,i),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
+PF_x_alongz(I_xz,x,z,"Probe Intensity 110[ps] delay");
+PF_x(I_xz(:,end),x,"Probe Intensity at sample end and 110[ps] delay");
 
 %PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
 % PF_FWHM_z(prpFWHM,z,"Propagated Probe FWHM");

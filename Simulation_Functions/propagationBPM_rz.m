@@ -41,7 +41,7 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
     E_rz(:,1) = E0_r(:);
 
     E = E0_r(:);
-
+    
     for iz = 2:Nz
         % Half-diffraction CN:
         E = Aimp \ (Aexp * E);
@@ -58,7 +58,7 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
 
         % Half-diffraction CN:
         E = Aimp \ (Aexp * E);
-
+        
         E_rz(:,iz) = E;
     end
 

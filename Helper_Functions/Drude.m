@@ -36,7 +36,7 @@ function [dn,dalpha] = Drude(Ne, Nh, lambda)
     % Mobility definition:
     mue = sp.e*sp.tau_D/sp.me_eff;
     muh = sp.e*sp.tau_D/sp.mh_eff;
-
+    
     % Drude model formulas:
     dn = -A*(dNe/sp.me_eff + dNh/sp.mh_eff)/2;
     dalpha = sp.e*A*(dNe/(mue*sp.me_eff^2) + dNh/(muh*sp.mh_eff^2))/sp.c0;  % [1/m]

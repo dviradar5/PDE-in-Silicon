@@ -26,8 +26,9 @@ classdef systemParameters
         penDepth = 1e-5;            % 10 micron, [m]
     
         % Sample dimensions:
-        Lx = 10e-6;                 % 10 micron, [m]
-        Lz = 20e-6;%25e-6;                 % 20-25 micron, [m]
+        Lx = 10e-6;                 % 10 micron [m]
+        Lz1 = 20e-6;                % 20 micron [m]
+        Lz2 = 25e-6;                % 25 micron [m]
     
         % Diffusion parameters:
         D = 2.6e-4;                 % Diffusion parameter [m^2/s]
@@ -42,12 +43,12 @@ classdef systemParameters
         mu_h = 0.045;               % Hole mobility [m^2/(V*s)]
     
         % Laser and optics parameters:
-        NA = 0.4;% 0.1:0.1:0.4      % Objective lens NA
+        NA = 0.4;                   % Objective lens maximal NA
         Dobj = 8e-2;                % Objective lens diameter, [m]
         f = 10e-3;                  % Objective lens focal length, [m]
         wl1 = 1550e-9;              % Wavelength [m]
         wl2 = 775e-9;               % Wavelength [m]
         alpha = 129620;             % α in Silicon at 775[nm] [1/m]
-        %alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m]
+        alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m]
     end
 end
