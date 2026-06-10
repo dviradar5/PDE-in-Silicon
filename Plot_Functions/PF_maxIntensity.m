@@ -13,7 +13,7 @@ function PF_maxIntensity(I, t)
     maxI = squeeze(max(I, [], [1 2]));
     %maxI = maxI/min(maxI);      % Normalization to original maximum
 
-    figure;
+    figure('Color','w');
     plot(t*1e12, maxI);
     axis tight; grid on;
     xlabel('t [ps]'); ylabel('Maximal Intensity [W/m^2]');

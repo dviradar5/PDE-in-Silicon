@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECKKKKKKKKKKKKK
 
 function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title, lockClim, fps)
     % Colormap animation

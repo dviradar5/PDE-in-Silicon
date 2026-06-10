@@ -53,7 +53,9 @@ Ipump_xz = cylToCart(Ipump,r,x);
 % Plotting pump intensity:
 PF_plot_xz(Ipump_xz*1e-4, z, x, "Pump Intensity [W/cm^2]");
 %PF_plot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
-%PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at Surface (z=0)","Intensity [W/cm^2]",'Intensity [W/cm^2]')
+PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at the Sample End","Intensity [W/cm^2]")
+
+damageThreshold(Ipump, pump_width, pump.lambda, 'Pump:');
 
 iz = 1;     % z=0
 %PF_beamIntensityPlot_xy(Ipump(:,iz), r, x, z(iz));
@@ -95,7 +97,7 @@ n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 % =========================================================================
 
 % Probe laser:
-probe_wd = 5e-11;   % Pulse of 50[ps]
+probe_wd = 5e-11;                       % Pulse of 50[ps]
 probe_E = pump.pulse_energy/100;        % [J]
 probe_w0 = 2.7e-6;                       
 
@@ -105,9 +107,10 @@ Iprobe_xz = cylToCart(Iprobe,r,x);
 
 %PF_plot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_plot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x, "Probe Normalized");
-PF_x(Iprobe_xz(:,1),x,"Undisturbed Probe Intensity at Surface (z=0)");
+PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at the Sample End",'Intensity [W/cm^2]');
 
 %absorptionDepth(Iprobe(1,:),z,probe.lambda);
+damageThreshold(Iprobe, probe_wd, probe.lambda, 'Undisturbed Probe:');
 
 % Cutting the Probe:
 %aperture = rectpuls(r,3.506e-6);
@@ -131,17 +134,23 @@ PF_x(Iprobe_xz(:,1),x,"Undisturbed Probe Intensity at Surface (z=0)");
 %% Probe Propogation (BPM)
 % =========================================================================
 
+% PML mask parameters:
+a = 0;
+b = 8;
+
 % Ipropogate = zeros(Nr,Nz,Nt);       % Probe intensity after propogation
 % Ipropogate_xz = zeros(Nx,Nz,Nt);
 % 
 % for i = 1:Nt
-%     [~, Ipropogate(:,:,i)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,i));
+%     [~, Ipropogate(:,:,i)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,i),a,b);
 %     %Ipropogate_xz(:,:,i) = cylToCart(Ipropogate(:,:,i),r,x);
 % end
 
 % No time coordinate:
-[~, I] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax));
+[~, I] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax),a,b);
 I_xz = cylToCart(I,r,x);
+
+damageThreshold(I, probe_wd, probe.lambda, 'Propagated Probe:');
 
 % Finding the z index where we get maximal intensity or focusing:
 % [~, izMax,~] = findMax(Ipropogate_xz(:,:,itMax));
@@ -153,9 +162,9 @@ prpFWHM = FWHM(I(:,:),r);
 %PF_x(Ipropogate_xz(:,izMax,itMax),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
 %PF_plot_xz(I_xz,z,x,"Probe Intensity 110[ps] delay",izMax);
 % PF_x_alongz(Iprobe_xz,x,z,"Undisturbed Probe Intensity 110[ps] delay");
-PF_x(I_xz(:,i),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
-PF_x_alongz(I_xz,x,z,"Probe Intensity 110[ps] delay");
-PF_x(I_xz(:,end),x,"Probe Intensity at sample end and 110[ps] delay");
+PF_x(I_xz(:,end)*1e-4,x,"Probe Intensity at sample end and 110[ps] delay",'Intensity [W/cm^2]');
+PF_x(I_xz(:,i)*1e-4,x,"Probe Intensity at Maximum Focusing and 110[ps] delay",'Intensity [W/cm^2]');
+PF_x_alongz(I_xz*1e-4,x,z,"Probe Intensity 110[ps] delay");
 
 %PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
 % PF_FWHM_z(prpFWHM,z,"Propagated Probe FWHM");
@@ -255,9 +264,6 @@ PF_probeComparison({Iprobe_xz,I_xz}, names, x, z, t(itMax), izList);
 % end
 % 
 % PF_probeComparison(Ilist, names, x, z, t(itMax), izList);
-
-% Change probe's w0:
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

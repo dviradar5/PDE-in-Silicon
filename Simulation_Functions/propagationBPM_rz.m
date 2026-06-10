@@ -1,10 +1,11 @@
 %% Maybe change the n in the intensity because it changes
 
-function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
+function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     % Beam propagation calcualtor
     % ---------------------------------------------------------------------
     % Calaculates the probe's propagation inside the sample using BPM in
-    % cylindrical coordinates
+    % cylindrical coordinates with perfect matched layer boundary
+    % conditions
     % =====================================================================
     % INPUTS:
     %        E0_r - complex electric field vector at z=0, Nr [V/m]
@@ -12,6 +13,8 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
     %        z - z coordinate, propagation vector [m]
     %        probe - probe laser beam, Laser-type object
     %        n_complex - complex refractive index matrix at specific time, Nr x Nz
+    %        a - PML mask parameter
+    %        b - PML mask parameter
     % OUTPUTS:
     %        E_rz - complex field inside the sample, Nr x Nz [V/m]
     %        I_rz - intensity in the sample, Nr x Nz [W/m^2]
@@ -30,13 +33,15 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
     k0 = 2*pi/probe.lambda;
     k = sp.n * k0;
 
-    a = 1i * dz / (4*k);
+    s = 1i * dz / (4*k);
 
     L = lap1dNeumannCylR(rVec, dr);
-    Aimp = speye(Nr) - a*L;
-    Aexp = speye(Nr) + a*L;
-
-
+    Aimp = speye(Nr) - s*L;
+    Aexp = speye(Nr) + s*L;
+    
+    % PML mask:
+    mask = exp(-a * (rVec / rVec(end)).^b);
+    
     E_rz = zeros(Nr, Nz);
     E_rz(:,1) = E0_r(:);
 
@@ -59,6 +64,9 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex)
         % Half-diffraction CN:
         E = Aimp \ (Aexp * E);
         
+        % PML mask to avoid boundary reflections:
+        E = E .* mask;
+
         E_rz(:,iz) = E;
     end
 

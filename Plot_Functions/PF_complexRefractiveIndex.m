@@ -24,7 +24,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     n_imag_x = 1e-2 * imag(n_xz) * 4 * pi/ lambda;  % α, [1/cm]
     
     % Refractive index:
-    figure;
+    figure('Color','w');
     imagesc(z*1e6, x*1e6, real(n_xz));
     
     hold on
@@ -37,7 +37,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     colorbar;
 
     % Absorption coefficient:
-    figure;
+    figure('Color','w');
     imagesc(z*1e6, x*1e6, n_imag_x);
     
     hold on
@@ -51,7 +51,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     cb.Label.String = "\alpha [1/cm]";
     
     % Combined graphs:
-    figure;
+    figure('Color','w');
     ax = gca;
     yyaxis right;  plot(x*1e6, n_imag_x(:,iz), "r", LineWidth=3, LineStyle= ":");
     ylabel('\alpha [1/cm]'); ax.YColor = 'r';     

@@ -1,6 +1,6 @@
 %% FINISHED
 
-function [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump,probe)
+function [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump,probe, a, b)
     % Quick Simulation Run
     % ---------------------------------------------------------------------
     % This function runs a quick simulation, without any plots and other
@@ -16,6 +16,8 @@ function [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump
     %        t - time vector [s]
     %        pump - pump laser beam, Laser-type object
     %        probe - probe laser beam, Laser-type object
+    %        a - PML mask parameter
+    %        b - PML mask parameter
     % OUTPUTS:
     %        pDiff - FCC distribution, Nr x Nz x Nt, [1/m^3]
     %        n_complex - complex refractive index matrix at specific time, Nr x Nz
@@ -44,7 +46,7 @@ function [pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump
     Ipropagate_xz = zeros(Nx,Nz,Nt);
     
     for i = 1:Nt
-        [~, Ipropagate(:,:,i)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,i));
+        [~, Ipropagate(:,:,i)] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,i), a, b);
         Ipropagate_xz(:,:,i) = cylToCart(Ipropagate(:,:,i),r,x);
     end
 

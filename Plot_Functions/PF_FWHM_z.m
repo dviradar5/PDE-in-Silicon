@@ -3,7 +3,7 @@
 function PF_FWHM_z(fwhm, z, plotTitle)
     % FWHM plotter
     % ---------------------------------------------------------------------
-    % Plots FWHM vs. 
+    % Plots FWHM vs. z. Also points out the minimum FWHM
     % =====================================================================
     % INPUTS:
     %        I - beam's intensity profile, Nr x Nz [J]
@@ -18,7 +18,7 @@ function PF_FWHM_z(fwhm, z, plotTitle)
     [minFWHM,i] = min(fwhm);
     fprintf('Minimum FWHM: %.4e m, Achieved at z = %.2f um\n', minFWHM, z(i)*1e6);
 
-    figure;
+    figure('Color','w');
     plot(z*1e6, fwhm*1e6,HandleVisibility="off");
     hold on;
     plot(z(i)*1e6,minFWHM*1e6,'x',DisplayName="Minimum", MarkerSize=10);

@@ -21,7 +21,7 @@ function PF_x_alongz(I,x,z, plotTitle,ITitle)
         ITitle = 'Intensity [W/m^2]';
     end
     
-    figure;
+    figure('Color','w');
     surf(z*1e6,x*1e6, I);
     shading interp;
     colorbar; colormap turbo;

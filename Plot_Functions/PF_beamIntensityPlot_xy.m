@@ -23,7 +23,7 @@ function PF_beamIntensityPlot_xy(I, r, x, plotTitle)
     oom = log10(max(I));        % Order of magnitude
     zscale = 0.1 * 10^oom;
 
-    figure;
+    figure('Color','w');
     surf(x*1e6, x*1e6, Ixy);
     shading interp;
     axis image; set(gca,'YDir','normal');

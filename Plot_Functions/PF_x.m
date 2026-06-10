@@ -1,6 +1,6 @@
 %% CHECKKKKKK
 
-function widthVal = PF_x(I, x, plotTitle, yTitle, xTitle)
+function [widthVal,fig] = PF_x(I, x, plotTitle, yTitle, xTitle)
     % Intensity plotter with automatic width marker
     % ---------------------------------------------------------------------
     % If profile is Gaussian-like:
@@ -10,7 +10,11 @@ function widthVal = PF_x(I, x, plotTitle, yTitle, xTitle)
     %   widthVal = distance between the two inner half-max points
     % ---------------------------------------------------------------------
 
-    if nargin < 4 || isempty(yTitle)
+    if nargin < 3 || isempty(plotTitle)
+        plotTitle = '';
+    end
+
+   if nargin < 4 || isempty(yTitle)
         yTitle = 'Intensity [W/m^2]';
     end
 
@@ -35,7 +39,7 @@ function widthVal = PF_x(I, x, plotTitle, yTitle, xTitle)
     isDonut = detectDonut(I, x);
 
     % Plot profile
-    figure;
+    fig = figure('Color','w');
     plot(x_um, I, 'LineWidth', 1.5);
     hold on;
     axis tight; grid on;
@@ -135,7 +139,7 @@ function fwhmVal = addGaussianFWHM(I, x)
 
     % Plot FWHM line
     plot([xHalfLeft xHalfRight]*1e6, [halfMax halfMax], ...
-         '--', 'LineWidth', 1.8);
+         'LineWidth', 1.8);
 
     plot([xHalfLeft xHalfLeft]*1e6, [0 halfMax], ...
          ':', 'LineWidth', 1.2, color='r');
@@ -143,14 +147,14 @@ function fwhmVal = addGaussianFWHM(I, x)
     plot([xHalfRight xHalfRight]*1e6, [0 halfMax], ...
          ':', 'LineWidth', 1.2, color='r');
 
-    plot(xHalfLeft*1e6, halfMax, 'o', ...
-         'MarkerSize', 7, 'LineWidth', 1.5, color='r');
-
-    plot(xHalfRight*1e6, halfMax, 'o', ...
-         'MarkerSize', 7, 'LineWidth', 1.5, color='r');
+    % plot(xHalfLeft*1e6, halfMax, 'o', ...
+    %      'MarkerSize', 7, 'LineWidth', 1.5, color='r');
+    % 
+    % plot(xHalfRight*1e6, halfMax, 'o', ...
+    %      'MarkerSize', 7, 'LineWidth', 1.5, color='r');
 
     text(mean([xHalfLeft xHalfRight])*1e6, halfMax, ...
-        sprintf('FWHM = %.3f \\mum', fwhmVal*1e6), ...
+        sprintf('%.3f \\mum', fwhmVal*1e6), ...
         'VerticalAlignment', 'bottom');
 end
 
@@ -237,18 +241,18 @@ function donutVal = addDonutInnerDistance(I, x)
     yLine = min(halfLeft, halfRight);
 
     % Plot lobe peaks
-    plot(x(idxLeftPeak)*1e6, IleftMax, 'o', ...
-         'MarkerSize', 8, 'LineWidth', 1.5, color='k');
-
-    plot(x(idxRightPeak)*1e6, IrightMax, 'o', ...
-         'MarkerSize', 8, 'LineWidth', 1.5, color='k');
+    % plot(x(idxLeftPeak)*1e6, IleftMax, 'o', ...
+    %      'MarkerSize', 8, 'LineWidth', 1.5, color='k');
+    % 
+    % plot(x(idxRightPeak)*1e6, IrightMax, 'o', ...
+    %      'MarkerSize', 8, 'LineWidth', 1.5, color='k');
 
     % Plot inner half-max points
-    plot(xHalfLeftInner*1e6, halfLeft, 'x', ...
-         'MarkerSize', 9, 'LineWidth', 1.5, color='r');
-
-    plot(xHalfRightInner*1e6, halfRight, 'x', ...
-         'MarkerSize', 9, 'LineWidth', 1.5, color='r');
+    % plot(xHalfLeftInner*1e6, halfLeft, 'x', ...
+    %      'MarkerSize', 9, 'LineWidth', 1.5, color='r');
+    % 
+    % plot(xHalfRightInner*1e6, halfRight, 'x', ...
+    %      'MarkerSize', 9, 'LineWidth', 1.5, color='r');
 
     % Draw distance line
     plot([xHalfLeftInner xHalfRightInner]*1e6, [yLine yLine], ...

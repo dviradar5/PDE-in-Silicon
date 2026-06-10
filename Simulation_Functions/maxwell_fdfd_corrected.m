@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECKKKKKKKKKKKKK
 
 function [E_rz, I_rz] = maxwell_fdfd_corrected(E0_r, r, z, probe, n_complex, opts)
     % Scalar FDFD propagation calculator

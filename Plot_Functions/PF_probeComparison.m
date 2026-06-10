@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECKKKKKKKKKK
 
 function PF_probeComparison(Ilist, names, x, z, it, izMax)
     % Compares intensities
@@ -19,7 +19,7 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax)
     % Number of intensities to compare:
     NI = numel(Ilist);
 
-    figure;
+    figure('Color','w');
     for i = 1:NI
         subplot(NI,1,i);
         imagesc(z*1e6, x*1e6, Ilist{i});
@@ -37,7 +37,7 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax)
     sgtitle(sprintf('Probe Intensity Maps at %.0f ps', it*1e12));
 
     % Comparing maximal intensity:
-    figure;
+    figure('Color','w');
     hold on;
 
     styles = {'-', '--', ':', '-.'};

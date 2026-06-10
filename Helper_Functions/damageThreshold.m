@@ -1,6 +1,6 @@
 %% FINISHED
 
-function Ith = damageThreshold(I, tau, wl)
+function Ith = damageThreshold(I, tau, wl, title)
     % Calculates damage-threshold
     % ---------------------------------------------------------------------
     % Calculates the intensity damage-threshold for silicon illuminated by
@@ -13,6 +13,7 @@ function Ith = damageThreshold(I, tau, wl)
     %        I - intensity matrix, Nr x Nz, [W/m^2]
     %        tau - laser pulse width, [s]
     %        wl - wavelength, [m]
+    %        title - string
     % OUTPUT:
     %        Ith - damage threshold maximal intensity, [W/cm^2]
     % *********************************************************************
@@ -26,8 +27,11 @@ function Ith = damageThreshold(I, tau, wl)
     [xMax,zMax,~] = findMax(I);
     Imax = I(xMax,zMax) * 1e-4;
 
+    fprintf("\n%s", title);
+
     if Imax >= Ith
-        fprintf("\nCaution: your intensity has passed the damage threshold " + ...
+        fprintf("\nCaution!" + ...
+            "\nyour intensity has passed the damage threshold " + ...
             "for Silicon with laser beam with wavelength of %.0f[nm] and " + ...
             "pulse width of %.0f[ps]", wl*1e9, tau*1e12);
     else

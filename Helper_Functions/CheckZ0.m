@@ -64,7 +64,7 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec)
     end
 
     % Checking the FWHM at the end:
-    figure;
+    figure('Color','w');
     plot(z0_vec*1e6,fwhm_end_pump*1e6, LineWidth=2); hold on;
     yline(0.91, 'r--');                   % Experimental result
     xline(0, 'k--'); xline(20, 'k--'); hold off;
@@ -72,7 +72,7 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec)
     xlabel('z0 [\mum]'); ylabel('Pump FWHM [\mum]');
     title("Pump's FWHM at the End of the Sample vs. Pump Waist Location on z Axis (z0)");
     
-    figure;
+    figure('Color','w');
     plot(z0_vec*1e6,fwhm_end(1,:)*1e6, 'b', LineWidth=2); hold on;
     plot(z0_vec*1e6,fwhm_end(2,:)*1e6, 'r:', LineWidth=2); hold on;
     yline(0.96, 'r--');                   % Experimental result
@@ -82,7 +82,7 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec)
     legend('z_0probe=0','z_0probe=z_0pump');
     title("Probe's FWHM at the End of the Sample vs. Pump Waist Location on z Axis (z0)");
     
-    figure;
+    figure('Color','w');
     scatter(z0_vec*1e6,abs(fwhm_end(1,:)-fwhm_end(2,:))*1e6, 'm'); hold on;
     xline(0, 'k--'); xline(20, 'k--'); hold off;
     axis tight; grid on;

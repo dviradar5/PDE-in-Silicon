@@ -82,7 +82,7 @@ function CheckW0andZ0(pump, z, r, x, t, probe,z0_vec,w0_vec,fwhm_pump,fwhm_probe
     %fprintf("Probe FWHM = %.3f [um]\n", best.fwhm_probe*1e6)
     fprintf("Error = %.3f [um]\n", best.error*1e6)
     
-    figure;
+    figure('Color','w');
     imagesc(z0_vec*1e6,w0_vec*1e6,errorMap*1e6); hold on;
     plot(best.z0*1e6, best.w0*1e6,'x',DisplayName="Minimum", MarkerSize=40); hold off;
     axis xy; colorbar;

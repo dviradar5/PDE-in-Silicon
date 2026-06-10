@@ -17,7 +17,7 @@ function PF_plot_xz(I, z, x, plotTitle,izMax)
         plotTitle = '';
     end
     
-    figure;
+    figure('Color','w');
     imagesc(z*1e6, x*1e6, I);
     
     if nargin == 5

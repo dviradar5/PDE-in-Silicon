@@ -24,21 +24,21 @@ function [dn,dalpha] = Drude(Ne, Nh, lambda)
     
     sp = systemParameters();
 
-    Ne0 = sp.ni;    % In [1/cm^3]
+    Ne0 = sp.ni;                    % In [1/cm^3]
     Nh0 = sp.ni;
     
-    dNe = Ne - Ne0*1e6;            % Converting Ne to [1/m^3]
+    dNe = Ne - Ne0*1e6;             % Converting Ne to [1/m^3]
     dNh = Nh - Nh0*1e6;
 
     % Coefficient:
     A = ((sp.e*lambda/(2*pi*sp.c0))^2)/(sp.eps0*sp.n);
     
     % Mobility definition:
-    mue = sp.e*sp.tau_D/sp.me_eff;
-    muh = sp.e*sp.tau_D/sp.mh_eff;
+    %mue = sp.e*sp.tau_D/sp.me_eff
+    %muh = sp.e*sp.tau_D/sp.mh_eff
     
     % Drude model formulas:
     dn = -A*(dNe/sp.me_eff + dNh/sp.mh_eff)/2;
-    dalpha = sp.e*A*(dNe/(mue*sp.me_eff^2) + dNh/(muh*sp.mh_eff^2))/sp.c0;  % [1/m]
-    %dalpha = sp.e*A*(dNe/(sp.mu_e*sp.me_eff^2) + dNh/(sp.mu_h*sp.mh_eff^2))/sp.c0;  % [1/m]
+    %dalpha = sp.e*A*(dNe/(mue*sp.me_eff^2) + dNh/(muh*sp.mh_eff^2))/sp.c0;  % [1/m]
+    dalpha = sp.e*A*(dNe/(sp.mu_e*sp.me_eff^2) + dNh/(sp.mu_h*sp.mh_eff^2))/sp.c0;  % [1/m]
 end

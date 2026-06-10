@@ -18,7 +18,7 @@ function prf = GB(r, z, lambda, w0, z0, E0)
     %        E0 - amplitude at the origin, E(0,0)
     %        z0 - waist location along z [m]
     % OUTPUT:
-    %        prf - complex field spatial profile in cylindrical coordinates
+    %        prf - complex field spatial profile, Nr x Nz
     % *********************************************************************
     
     sp = systemParameters();

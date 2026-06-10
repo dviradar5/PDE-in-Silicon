@@ -30,7 +30,7 @@ t = t .* 1e-12;                         % Time vector, 0-1[ns], [s]
 Nt = numel(t);
 
 % Spatial vectors intialization:
-Nr = 301;                               % Number of elements
+Nr = 501;                               % Number of elements
 Nz = 501;
 
 z = linspace(0, sp.Lz1, Nz);            % 20 micron
@@ -49,106 +49,117 @@ Nx = numel(x);
 % =========================================================================
 
 % Pump parameters:
-pump_wd = 30e-12;                       % Pulse of 30[ps]
+pump_width = 30e-12;                    % Pulse of 30[ps]
 pump_E = 20e-9;                         % Beam total energy of 20[nJ], [J]
-pump_w0 = 1.185e-6;
+pump_w0 = 1.185e-6;%1.185e-6; %3.345e-6
 z0 = 9e-6;                              % Beam waist location
 
 % Pump laser:
-pump = laser(sp.wl2, pump_wd, pump_E, "Donut", r, phi, z, pump_w0, z0);  % 775[nm]
+pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0);  % 775[nm]
 
 Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plots:
-% PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at Surface (z=0)", "Intensity [W/cm^2]");
-PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at Sample End",'Intensity [W/cm^2]');
-%PF_FWHM_z(FWHM(Ipump,r),z) %FIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+%PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at Sample End",'Intensity [W/cm^2]');
+[~,f1] = PF_x(Ipump_xz(:,end)/max(Ipump_xz(:,end)),x,'','Intensity');
+%PF_FWHM_z(FWHM(Ipump,r),z)                                         %FIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Probe Beam
 % =========================================================================
 
 % Probe parameters:
-probe_wd = 30e-12;                      % Pulse of 30[ps]
+probe_width = 30e-12;                   % Pulse of 30[ps]
 probe_E = pump.pulse_energy/100;        % [J]
 probe_w0 = 2.28e-6;                       
 
 % Probe laser:
-probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
+probe = laser(sp.wl2, probe_width, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 
 Iprobe = probe.intensityProfileBLDumped(z);
 Iprobe_xz = cylToCart(Iprobe,r,x);
 
 % Plots:
-% PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at Surface (z=0)",'Intensity [W/cm^2]',[]);
-PF_x(Iprobe_xz(:,end)*1e-4,x,"Undisturbed Probe Intensity at Sample End",'Intensity [W/cm^2]',[]);
+%PF_x(Iprobe_xz(:,end)*1e-4,x,"Undisturbed Probe Intensity at the Sample End",'Intensity [W/cm^2]');
+[~,f2] = PF_x(Iprobe_xz(:,end)/max(Iprobe_xz(:,end)),x,'','Intensity');
 % PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Parameter Optimization and Other Tests
+%% Parameters Optimization and Other Tests
 % =========================================================================
 
 % Checking for the optimal waist, waist location and energy:
-z0_vec = (0:1:20)*1e-6;%(-10:5:30)*1e-6;
-w0_vec = (1.1:0.1:1.4)*1e-6;
-
-%CheckZ0(pump,z,r,x,t,probe,z0_vec);
-%CheckW0andZ0(pump,z,r,x,t,probe,z0_vec,w0_vec,0.91e-6,0.96e-6);
-
-%[opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe);
+% z0_vec = (0:1:20)*1e-6;%(-10:5:30)*1e-6;
+% w0_vec = (1.1:0.1:1.4)*1e-6;
+% CheckZ0(pump,z,r,x,t,probe,z0_vec);
+% CheckW0andZ0(pump,z,r,x,t,probe,z0_vec,w0_vec,0.91e-6,0.96e-6);
+% [opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe);
 
 % Checking we're under the destructive intensity:
-damageThreshold(Ipump, pump_wd, sp.wl2);
-damageThreshold(Iprobe, probe_wd, sp.wl2);
+damageThreshold(Ipump, pump_width, pump.lambda, 'Pump:');
+damageThreshold(Iprobe, probe_width, probe.lambda, 'Undisturbed Probe:');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Simulation Run
 % =========================================================================
 
 pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
-[~, ~, itMax] = findMax(pDiff)
+[~, ~, itMax] = findMax(pDiff);
 
 n_complex = complexRefractiveIndex(pDiff, pump.lambda);
-[~, in] = findMax(n_complex(:,:,itMax))      % Maximum intensity
+[~, in] = findMax(n_complex(:,:,itMax));% Maximum intensity
 
-[~, Ipropagate] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax));
+% PML mask parameters:
+a = 4;
+b = 8;
+
+%[pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump,probe,a,b);
+
+% Simulation for maximal delay (~90-110[ps]):
+[~, Ipropagate] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax),a,b);
 Ipropagate_xz = cylToCart(Ipropagate,r,x);
-PF_x(Ipropagate_xz(:,Nz)*1e-4,x,"BPM Propagated Probe Intensity at Sample End",'Intensity [W/cm^2]');
-
-opts = struct;
-opts.npml_r = 40;
-opts.npml_z = 40;
-opts.pml_kmax = 1;
-opts.verbose = true;
-
-[~, Ipropagate] = maxwell_fdfd_corrected(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax), opts);
-Ipropagate_xz = cylToCart(Ipropagate,r,x);
-PF_x(Ipropagate_xz(:,Nz)*1e-4,x,"FDFD Propagated Probe Intensity at Sample End",'Intensity [W/cm^2]');
-
-%[pDiff,n_complex,Ipropagate,Ipropagate_xz] = runSimulation(x,z,r,t,pump,probe);
 
 % Checking we're under the destructive intensity:
-damageThreshold(Ipropagate, probe_wd, sp.wl2);
-PF_x(Ipropagate_xz(:,Nz)*1e-4,x,"Propagated Probe Intensity at Sample End",'Intensity [W/cm^2]');
-PF_x_alongz(Ipropagate_xz*1e-4, x, z,"Propagated Probe Intensity",'Intensity [W/cm^2]');
+damageThreshold(Ipropagate, probe_width, probe.lambda, 'Propagated Probe:');
 
-[~, i] = findMax(Ipropagate_xz)      % Maximum intensity
+%PF_x(Ipropagate_xz(:,Nz)*1e-4,x,"Propagated Probe Intensity at the Sample End",'Intensity [W/cm^2]');
+[~,f3] = PF_x(Ipropagate_xz(:,end)/max(Ipropagate_xz(:,end)),x,'','Intensity');
+%PF_x_alongz(Ipropagate_xz*1e-4, x, z,"Propagated Probe Intensity",'Intensity [W/cm^2]');
+
+% Combining the figures:
+figure('Color','w');
+ax1 = subplot(1,3,1);
+copyobj(allchild(findobj(f2,'Type','axes')), ax1);
+ylabel('Normalized Intensity', 'FontSize',12); xlabel('x [\mum]');
+
+ax2 = subplot(1,3,2);
+copyobj(allchild(findobj(f1,'Type','axes')), ax2);
+xlabel('x [\mum]');
+
+ax3 = subplot(1,3,3);
+copyobj(allchild(findobj(f3,'Type','axes')), ax3);
+ylim([0,1]);
+xlabel('x [\mum]');
+
+[~, i] = findMax(Ipropagate_xz);        % Maximum intensity
 
 prpFWHM = FWHM(Ipropagate,r);
-%[~,i] = min(prpFWHM)                           % Minimal FWHM
+%[~,i] = min(prpFWHM);                  % Minimal FWHM
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Other Plots
 % =========================================================================
 
 % Pump:
+PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at the Sample Surface (z=0)", "Intensity [W/cm^2]");
 PF_beamIntensityPlot_xy(Ipump(:,1)*1e-4, r, x);
 
 % Original probe:
 PF_x_alongz(Iprobe_xz*1e-4, x, z,"Undisturbed Probe Intensity",'Intensity [W/cm^2]');
+PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at the Sample Surface (z=0)",'Intensity [W/cm^2]');
 PF_x(Iprobe_xz(:,i)*1e-4,x,"Undisturbed Probe Intensity at Maximum Intensity",'Intensity [W/cm^2]',[]);
-PF_beamIntensityPlot_xy(Iprobe(:,1)*1e-4, r, x,"Undisturbed Probe Intensity at Front Surface [W/cm^2]");
+PF_beamIntensityPlot_xy(Iprobe(:,1)*1e-4, r, x,"Undisturbed Probe Intensity at the Sample Surface (z=0) [W/cm^2]");
 
 % Complex refractive index:
 PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, 1, t(itMax));
@@ -156,7 +167,7 @@ PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, 1, t(itMax
 % Propagated probe:
 PF_x_alongz(Ipropagate_xz*1e-4, x, z,"Propagated Probe Intensity",'Intensity [W/cm^2]');
 PF_x(Ipropagate_xz(:,i)*1e-4,x,"Propagated Probe Intensity at Maximum Intensity",'Intensity [W/cm^2]');
-PF_x(Ipropagate_xz(:,Nz)*1e-4,x,"Propagated Probe Intensity at Sample End",'Intensity [W/cm^2]');
+PF_x(Ipropagate_xz(:,Nz)*1e-4,x,"Propagated Probe Intensity at the Sample End",'Intensity [W/cm^2]');
 PF_beamIntensityPlot_xy(Ipropagate(:,i)*1e-4, r, x, 'Propagated Probe Intensity at Maximum Intensity [W/cm^2]');
 
 % FWHM:

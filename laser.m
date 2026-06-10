@@ -9,19 +9,19 @@ classdef laser
     % *********************************************************************
 
     properties
-        lambda;              % Wavelength [m]
-        f;                   % Frequency [Hz]
-        ang_f;               % Angular frequency [rad/s]
+        lambda;             % Wavelength [m]
+        f;                  % Frequency [Hz]
+        ang_f;              % Angular frequency [rad/s]
 
-        pulse_width;         % Pulse width (intensity FWHM) [s]
-        pulse_energy;        % Pulse total energy [J]
+        pulse_width;        % Pulse width (intensity FWHM) [s]
+        pulse_energy;       % Pulse total energy [J]
 
-        type;                % Gaussian or "Donut"
-        w0;                  % Waist radius at z=z0 [m]
-        z0;                  % Waist location along z axis [m]
-        E0;                  % Peak field amplitude at waist center [V/m]
+        type;               % Gaussian or "Donut"
+        w0;                 % Waist radius at z=z0 [m]
+        z0;                 % Waist location along z axis [m]
+        E0;                 % Peak field amplitude at waist center [V/m]
 
-        profile;             % Spatial field profile matrix E(r,z) [V/m]
+        profile;            % Spatial field profile matrix E(r,z) [V/m]
     end
 
     methods
@@ -59,8 +59,8 @@ classdef laser
 
             % Building spatial field profile:
             this.profile = this.beamProfile(this.type, r, phi, z, this.w0, this.z0, this.E0);
-        end
-        
+        end       
+
         function E0 = computeE0FromEnergy(this)
             % Computes peak electric field amplitude
             % -------------------------------------------------------------
