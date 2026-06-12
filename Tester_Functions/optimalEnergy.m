@@ -24,6 +24,10 @@ function [opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe)
     opt_fwhm = 0;
     opt_z = 0;
     
+    % PML mask parameters:
+    a = 4;
+    b = 8;
+
     maxI_vec = zeros(1,numel(energies));
     maxILoc_vec = zeros(1,numel(energies));
 
@@ -35,10 +39,10 @@ function [opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe)
     
     for i = 1:numel(energies) 
         % Create new pump and probe:
-        pump1 = laser(pump.lambda, pump.pulse_width, energies(i), "Donut", r, atan(1), z, pump.w0, pump.z0);
+        pump1 = laser(pump.lambda, pump.pulse_width, energies(i), "Donut", r, atan(1), z, pump.w0, pump.z0,l);
         probe1 = laser(probe.lambda, probe.pulse_width, energies(i)/100, "Gauss", r, atan(1), z, probe.w0, 0);
         
-        [~,~,I,~] = runSimulation(x,z,r,t,pump1,probe1);
+        [~,~,I,~] = runSimulation(x,z,r,t,pump1,probe1,a,b);
         Irz = I(:,:,11);
 
         fwhm_z = FWHM(Irz, r);
@@ -60,34 +64,34 @@ function [opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe)
         end
     end
 
-    fprintf("Optimal Energy: %.2f[nJ], at z = %.2f[um]\n", opt_energy*1e9, opt_z*1e6);
-    fprintf("FWHM: %.2f[um]\n",opt_fwhm*1e6);
+    fprintf("\nOptimal Energy: %.2f[nJ], at z = %.2f[um]", opt_energy*1e9, opt_z*1e6);
+    fprintf("\nFWHM: %.2f[um]",opt_fwhm*1e6);
     
-    figure;
+    figure('Color','w');
     plot(energies*1e9, FWHMLoc_vec*1e6, '-o', 'LineWidth', 1.5);
     grid on; axis tight;
     xlabel('Pump Energy [nJ]'); ylabel('zFWHM [\mum]');
     title('Minimal Probe FWHM z-axis locztion vs. Pump Energy');
 
-    figure;
+    figure('Color','w');
     plot(energies*1e9, minFWHM_vec*1e6, '-o', 'LineWidth', 1.5);
     grid on; axis tight;
     xlabel('Pump Energy [nJ]'); ylabel('Minimal FWHM [\mum]');
     title('Minimal Probe FWHM vs. Pump Energy');
 
-    figure;
+    figure('Color','w');
     plot(energies*1e9, endFWHM_vec*1e6, '-o', 'LineWidth', 1.5);
     grid on; axis tight;
     xlabel('Pump Energy [nJ]'); ylabel('FWHM at Sample End [\mum]');
     title('Probe FWHM at Sample End vs. Pump Energy');
         
-    figure;
+    figure('Color','w');
     plot(energies*1e9, maxI_vec*1e-4, '-o', 'LineWidth', 1.5);
     grid on; axis tight;
     xlabel('Pump Energy [nJ]'); ylabel('Max Intensity [W/cm^2]');
     title('Probe Max Intensity vs. Pump Energy');
 
-    figure;
+    figure('Color','w');
     plot(energies*1e9, maxILoc_vec*1e6, '-o', 'LineWidth', 1.5);
     grid on; axis tight;
     xlabel('Pump Energy [nJ]'); ylabel('zMax [\mum]');

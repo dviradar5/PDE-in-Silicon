@@ -40,13 +40,14 @@ Nx = numel(x);
 % =========================================================================
 
 % Pump parameters:
-pump_width = 3e-11;     % Pulse of 30[ps]
-pump_E = 35e-9;         % Beam total energy [J]
+pump_width = 3e-11;                     % Pulse of 30[ps]
+pump_E = 35e-9;                         % Beam total energy [J]
 pump_w0 = 2.7e-6;                       
-z0 = 5e-6;                 % Beam waist location
+z0 = 5e-6;                              % Beam waist location
+l = 2;                                  % LG polynomial index
 
 % Pump laser:
-pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0);  % 775[nm]
+pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0,l);  % 775[nm]
 Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
@@ -69,13 +70,11 @@ iz = 1;     % z=0
 pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
 
 % Finding the time when we get maximal concentration:
-[~, ~, itMax] = findMax(pDiff);   % itMax = 12 = 110[ps]
-
+[~, ~, itMax] = findMax(pDiff);         % itMax = 12 = 110[ps]
 
 pxz = cylToCart(pDiff(:,:,itMax),r,x) * 1e-6;
 %PF_x(pxz,x,"FCC Maximal Concentration in [1/cm^3] at t=110[ps]")
 %PF_plot_xz(pxz,z,x,"FCC Maximal Concentration in [1/cm^3] at t=110[ps]");
-
 
 %tIdx = [1, 19, 20, 50, 100, 150, 270, Nt];
 %PF_colormapAnimation_xz(pDiff*1e-6, r, z ,x, 1:Nt, "FCC Concentration vs. Time", "FCC concentration [1/cm^3]", false, 50);
@@ -138,7 +137,7 @@ damageThreshold(Iprobe, probe_wd, probe.lambda, 'Undisturbed Probe:');
 a = 0;
 b = 8;
 
-% Ipropogate = zeros(Nr,Nz,Nt);       % Probe intensity after propogation
+% Ipropogate = zeros(Nr,Nz,Nt);          % Probe intensity after propogation
 % Ipropogate_xz = zeros(Nx,Nz,Nt);
 % 
 % for i = 1:Nt
@@ -182,12 +181,12 @@ PF_x_alongz(I_xz*1e-4,x,z,"Probe Intensity 110[ps] delay");
 % =========================================================================
 
 % Checking the best z0 and w0:
-z0_vec = (6:1:10)*1e-6;
-w0_vec = (1.17:0.005:1.2)*1e-6;
-%CheckZ0(pump,z,r,x,t,probe);
+% z0_vec = (6:1:10)*1e-6;
+% w0_vec = (1.17:0.005:1.2)*1e-6;
+% CheckZ0(pump,z,r,x,t,probe,l);
 
 % Checking the best pump energy:
-%[opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe);
+% [opt_energy,opt_fwhm] = optimalEnergy(pump,z,r,x,t,probe);
 
 % FWHM calculation:
 %fwhm = zeros(Nz,Nt);
@@ -201,7 +200,7 @@ w0_vec = (1.17:0.005:1.2)*1e-6;
 
 % FWHM vs. t:
 %tmin = min(fwhm(:));
-% figure;
+% figure('Color','w');
 % plot(t,tmin(:))
 % grid on; axis tight;
 % xlabel("t [ps]"); ylabel('Minimal FWHM [\mum]');

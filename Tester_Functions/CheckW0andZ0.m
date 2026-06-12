@@ -21,7 +21,10 @@ function CheckW0andZ0(pump, z, r, x, t, probe,z0_vec,w0_vec,fwhm_pump,fwhm_probe
     % *********************************************************************
     
     phi = atan(1);
-
+    % PML mask parameters:
+    a = 4;
+    b = 8;
+    
     results = [];
     errorMap = nan(numel(z0_vec), numel(w0_vec));
     best.error = inf;
@@ -38,10 +41,10 @@ function CheckW0andZ0(pump, z, r, x, t, probe,z0_vec,w0_vec,fwhm_pump,fwhm_probe
             % Pump FWHM at end of sample:
             %pump_fwhm = FWHM(Ipump_i,r);
             %fwhm_pump_end = pump_fwhm(end);
-            fwhm_pump_end = PF_x(Ipump_i_xz(:,end)*1e-4, x,"Pump at sample end", "Intensity [W/cm^2]");
+            [fwhm_pump_end,~] = PF_x(Ipump_i_xz(:,end)*1e-4, x,"Pump at sample end", "Intensity [W/cm^2]");
 
             % Run simulation:
-            %[pDiff, ~, Ipropagate, ~] = runSimulation(x, z, r, t, pump_i, probe);
+            %[pDiff, ~, Ipropagate, ~] = runSimulation(x, z, r, t, pump_i, probe,a,b);
 
             % Best time index:
             %[~, ~, itMax] = findMax(pDiff);

@@ -1,6 +1,5 @@
 %% CHECK BL DUMPING
 %% CHECK PROFILE (ADD n)
-%% Check Beam Diameter
 
 classdef laser
     % Laser Beam Class
@@ -26,7 +25,7 @@ classdef laser
 
     methods
         % Constructor:
-        function this = laser(wl, pls_wd, pls_energy, type, r, phi, z, w0, z0)
+        function this = laser(wl, pls_wd, pls_energy, type, r, phi, z, w0, z0,l)
             % Constructs a laser beam
             % =============================================================
             % INPUTS:
@@ -39,8 +38,13 @@ classdef laser
             %        z -z coordinate, propagation vector [m]
             %        w0 - waist radius [m]
             %        z0 - waist location along z axis [m]
+            %        l - LG polynomial index (optional)
             % *************************************************************
-
+            
+            if nargin < 10 || isempty(l)
+                l = 1;
+            end
+            
             sp = systemParameters();
 
             this.lambda = wl;
@@ -58,7 +62,7 @@ classdef laser
             this.E0 = this.computeE0FromEnergy();
 
             % Building spatial field profile:
-            this.profile = this.beamProfile(this.type, r, phi, z, this.w0, this.z0, this.E0);
+            this.profile = this.beamProfile(this.type, r, phi, z, this.w0, this.z0, this.E0,l);
         end       
 
         function E0 = computeE0FromEnergy(this)
@@ -130,7 +134,7 @@ classdef laser
             energy = I0 * (pi*this.pulse_width*this.w0^2/4) * sqrt(pi/ln(2));    % [J]
         end
 
-        function prf = beamProfile(this, type, r, phi, z, w0, z0, E0)
+        function prf = beamProfile(this, type, r, phi, z, w0, z0, E0,l)
             % Beam profile creator
             % -------------------------------------------------------------
             % Creates and returns appropriate spatial field profile E(r,z)
@@ -152,7 +156,7 @@ classdef laser
                 prf = GB(r, z, this.lambda, w0, z0, E0);
             
             elseif string(type) == "Donut"
-                prf = LGB01(r, phi, z, this.lambda, w0, z0, E0);
+                prf = LGB01(r, phi, z, this.lambda, w0, z0, E0,l);
             
             else
                 error("Inappropriate type. Please use 'Gauss' or 'Donut'");

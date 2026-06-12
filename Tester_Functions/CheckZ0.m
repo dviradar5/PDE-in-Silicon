@@ -1,6 +1,6 @@
 %% FINISHED
 
-function CheckZ0(pump, z, r, x, t, probe, z0_vec)
+function CheckZ0(pump, z, r, x, t, probe, z0_vec,l)
     % Checks z0's effect on FWHM
     % ---------------------------------------------------------------------
     % This function changes z0 of the pump and checks the effect it has on
@@ -17,6 +17,7 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec)
     %        t - time vector [s]
     %        probe - probe laser beam, Laser-type object
     %        z0_vec - vector of z0 to check
+    %        l - LG polynomial index
     % *********************************************************************
     
     Nz = numel(z);
@@ -33,13 +34,17 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec)
     %n_complex1 = zeros(Nr,Nz,Nt,Nz0); n_complex2 = zeros(Nr,Nz,Nt,Nz0);
 
     fwhm_end = zeros(2,Nz0); fwhm_end_pump = zeros(Nz0);
-
+    
+    % PML mask parameters:
+    a = 4;
+    b = 8;
+    
     for i = 1:Nz0
         % Create new pump with the new z0:
-        pump1 = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, pump.w0, z0_vec(i));
+        pump1 = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, pump.w0, z0_vec(i),l);
         Ipump1_xz = cylToCart(pump1.intensityProfileBLDumped(z),r,x);
         %PF_plot_xz(Ipump1_xz*1e-4, z, x, sprintf('pump z0 = %.1f \\mum',z0_vec(i)*1e6));
-        fwhm_end_pump(i) = PF_x(Ipump1_xz(:,end)*1e-4,x,sprintf('Back Surafce: pump z0 = %.1f \\mum',z0_vec(i)*1e6),'Intensity [W/cm^2]');
+        [fwhm_end_pump(i),~] = PF_x(Ipump1_xz(:,end)*1e-4,x,sprintf('Back Surafce: pump z0 = %.1f \\mum',z0_vec(i)*1e6),'Intensity [W/cm^2]');
 
         % Probe with constant z0=0 (sample surface):
         probe1 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy, "Gauss", r, phi, z, probe.w0, 0);
@@ -49,18 +54,18 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec)
         probe2 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy, "Gauss", r, phi, z, probe.w0,  z0_vec(i));
         %Iprobe2_xz = cylToCart(probe2.intensityProfileBLDumped(z),r,x);
 
-        [pDiff1,~,~,Ipropagate1_xz] = runSimulation(x,z,r,t,pump1,probe1);
-        [pDiff2,~,~,Ipropagate2_xz] = runSimulation(x,z,r,t,pump1,probe2);
+        [pDiff1,~,~,Ipropagate1_xz] = runSimulation(x,z,r,t,pump1,probe1,a,b);
+        [pDiff2,~,~,Ipropagate2_xz] = runSimulation(x,z,r,t,pump1,probe2,a,b);
         [~, ~, it1] = findMax(pDiff1);
         [~, ~, it2] = findMax(pDiff2);
         
         title1 = sprintf('pump z0 = %.1f \\mum ; probe z0 = %.1f \\mum',z0_vec(i)*1e6, 0);
         %PF_x_alongz(Ipropagate1_xz(:,:,it)*1e-4, x, z,title1,'Intensity [W/cm^2]');
-        fwhm_end(1,i) = PF_x(Ipropagate1_xz(:,end,it1)*1e-4,x,"Propagated Probe Intensity at Sample End "+title1,'Intensity [W/cm^2]');
+        [fwhm_end(1,i),~] = PF_x(Ipropagate1_xz(:,end,it1)*1e-4,x,"Propagated Probe Intensity at Sample End "+title1,'Intensity [W/cm^2]');
         
         title2 = sprintf('pump z0 = %.1f \\mum ; probe z0 = %.1f \\mum',z0_vec(i)*1e6, z0_vec(i)*1e6);
         %PF_x_alongz(Ipropagate2_xz(:,:,it)*1e-4, x, z,title2,'Intensity [W/cm^2]');       
-        fwhm_end(2,i) = PF_x(Ipropagate2_xz(:,end,it2)*1e-4,x,"Propagated Probe Intensity at Sample End "+title2,'Intensity [W/cm^2]');
+        [fwhm_end(2,i),~] = PF_x(Ipropagate2_xz(:,end,it2)*1e-4,x,"Propagated Probe Intensity at Sample End "+title2,'Intensity [W/cm^2]');
     end
 
     % Checking the FWHM at the end:

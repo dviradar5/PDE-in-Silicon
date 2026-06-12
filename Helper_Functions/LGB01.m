@@ -1,6 +1,6 @@
 %% MAKE genral mode
 
-function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
+function prf = LGB01(r, phi, z, lambda, w0, z0, E0, l)
     % Laguerre–Gaussian with p=0, l=1 (mode01)
     % ---------------------------------------------------------------------
     % Calculates the electric field (assuming polarization in x direction),
@@ -20,6 +20,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
     %        w0 - waist radius at z=z0 [m]
     %        E0 - amplitude at the origin, E(0,0)
     %        z0 - waist location along z [m]
+    %        l - LG polynomial index
     % OUTPUT:
     %        prf - complex field spatial profile in cylindrical coordinates
     % *********************************************************************
@@ -31,8 +32,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
 
     prf = complex(zeros(Nr, Nz));
 
-    % Mode 01:
-    l = 1;
+    % Mode p=0:
     p = 0;
 
     % Beam constants:
@@ -40,7 +40,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
     zR = pi*sp.n*w0^2/lambda;
     
     % Generalized Laguerre polynom 01:
-    L01 = 1;
+    L0l = 1;
     
     % Calculating E(x,y,z) for each element in z:
     for iz = 1:Nz
@@ -61,7 +61,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0)
         end
         
         % Amplitude:
-        amp = E0 * (w0/w) .* (sqrt(2)*r/w).^abs(l) .* L01 .* exp(-(r.^2)/(w^2));
+        amp = E0 * (w0/w) .* (sqrt(2)*r/w).^abs(l) .* L0l .* exp(-(r.^2)/(w^2));
 
         % Phase:
         phase = exp(-1i * (k*Z - (abs(l)+1)*gouy + k*(r.^2)/(2*R)));
