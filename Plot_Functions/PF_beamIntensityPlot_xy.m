@@ -27,7 +27,7 @@ function PF_beamIntensityPlot_xy(I, r, x, plotTitle)
     surf(x*1e6, x*1e6, Ixy);
     shading interp;
     axis image; set(gca,'YDir','normal');
-    xlabel('x [\mum]'); ylabel('y [\mum]');
+    xlabel('x [\mum]', 'FontSize',15); ylabel('y [\mum]', 'FontSize',15);
     title(plotTitle, 'Interpreter', 'latex');
     colorbar;
     daspect([1 1 zscale]);

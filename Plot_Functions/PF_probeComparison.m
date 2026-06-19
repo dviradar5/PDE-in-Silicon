@@ -1,6 +1,6 @@
 %% CHECKKKKKKKKKK
 
-function PF_probeComparison(Ilist, names, x, z, it, izMax)
+function PF_probeComparison(Ilist, names, x, z, it, izMax, yTitle)
     % Compares intensities
     % ---------------------------------------------------------------------
     % Plots several colormaps of (probe) intensity before and after pump
@@ -15,7 +15,11 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax)
     %        it - specific time point
     %        izMax - list of z index where maximal focusing occur
     % *********************************************************************
-    
+   
+    if nargin < 7 || isempty(yTitle)
+        yTitle = 'Intensity [W/m^2]';
+    end
+
     % Number of intensities to compare:
     NI = numel(Ilist);
 
@@ -30,10 +34,10 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax)
 
         axis xy; colorbar;
         
-        ylabel('x [\mum]');
+        ylabel('x [\mum]', 'FontSize',15);
         title(names{i});
     end
-    xlabel('z [\mum]');
+    xlabel('z [\mum]', 'FontSize',15);
     sgtitle(sprintf('Probe Intensity Maps at %.0f ps', it*1e12));
 
     % Comparing maximal intensity:
@@ -54,9 +58,9 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax)
     end
 
     hold off;
+    
     axis tight; grid on;
-    xlabel('x [\mum]');
-    ylabel('Intensity [W/m^2]');
+    xlabel('x [\mum]', 'FontSize',15); ylabel(yTitle, 'FontSize',15);
     legend('Location','best');
     title('Maximal Probe Intensity Profiles');
 

@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
-close all;
+%close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Paraneters and Vector Definitions
@@ -44,7 +44,7 @@ pump_width = 3e-11;                     % Pulse of 30[ps]
 pump_E = 35e-9;                         % Beam total energy [J]
 pump_w0 = 2.7e-6;                       
 z0 = 5e-6;                              % Beam waist location
-l = 2;                                  % LG polynomial index
+l = 1;                                  % LG polynomial index
 
 % Pump laser:
 pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0,l);  % 775[nm]
@@ -52,9 +52,9 @@ Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plotting pump intensity:
-PF_plot_xz(Ipump_xz*1e-4, z, x, "Pump Intensity [W/cm^2]");
+%PF_plot_xz(Ipump_xz*1e-4, z, x, "Pump Intensity [W/cm^2]");
 %PF_plot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
-PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at the Sample End","Intensity [W/cm^2]")
+%PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at the Sample End","Intensity [W/cm^2]");
 
 damageThreshold(Ipump, pump_width, pump.lambda, 'Pump:');
 
@@ -98,7 +98,7 @@ n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 % Probe laser:
 probe_wd = 5e-11;                       % Pulse of 50[ps]
 probe_E = pump.pulse_energy/100;        % [J]
-probe_w0 = 2.7e-6;                       
+probe_w0 = 12e-6;%2.7e-6                       
 
 probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
 Iprobe = probe.intensityProfileBLDumped(z);
@@ -106,7 +106,7 @@ Iprobe_xz = cylToCart(Iprobe,r,x);
 
 %PF_plot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_plot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x, "Probe Normalized");
-PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at the Sample End",'Intensity [W/cm^2]');
+%PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at the Sample End",'Intensity [W/cm^2]');
 
 %absorptionDepth(Iprobe(1,:),z,probe.lambda);
 damageThreshold(Iprobe, probe_wd, probe.lambda, 'Undisturbed Probe:');
@@ -134,7 +134,7 @@ damageThreshold(Iprobe, probe_wd, probe.lambda, 'Undisturbed Probe:');
 % =========================================================================
 
 % PML mask parameters:
-a = 0;
+a = 4;
 b = 8;
 
 % Ipropogate = zeros(Nr,Nz,Nt);          % Probe intensity after propogation
@@ -150,6 +150,8 @@ b = 8;
 I_xz = cylToCart(I,r,x);
 
 damageThreshold(I, probe_wd, probe.lambda, 'Propagated Probe:');
+PF_x_alongz(I_xz*1e-4,x,z,"Probe Intensity 110[ps] delay");
+PF_x(I_xz(:,end)*1e-4,x,"Probe Intensity at sample end and 110[ps] delay",'Intensity [W/cm^2]');
 
 % Finding the z index where we get maximal intensity or focusing:
 % [~, izMax,~] = findMax(Ipropogate_xz(:,:,itMax));

@@ -32,7 +32,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     hold off
     
     set(gca,'YDir','normal'); axis tight;
-    xlabel('z [\mum]'); ylabel('x [\mum]');
+    xlabel('z [\mum]', 'FontSize',15); ylabel('x [\mum]', 'FontSize',15);
     title(sprintf('Refraction at t=%d[ps]',it*1e12));
     colorbar;
 
@@ -45,7 +45,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     hold off
     
     set(gca,'YDir','normal'); axis tight;
-    xlabel('z [\mum]'); ylabel('x [\mum]');
+    xlabel('z [\mum]', 'FontSize',15); ylabel('x [\mum]', 'FontSize',15);
     title(sprintf('Absorption at t=%d[ps]',it*1e12));
     cb = colorbar(gca);
     cb.Label.String = "\alpha [1/cm]";

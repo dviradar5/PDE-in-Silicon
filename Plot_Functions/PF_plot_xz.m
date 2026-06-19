@@ -27,8 +27,8 @@ function PF_plot_xz(I, z, x, plotTitle,izMax)
     end
 
     axis xy;
-    xlabel('z [\mum]');
-    ylabel('x [\mum]');
+    xlabel('z [\mum]', 'FontSize',15);
+    ylabel('x [\mum]', 'FontSize',15);
     title(plotTitle);
     colorbar;
     

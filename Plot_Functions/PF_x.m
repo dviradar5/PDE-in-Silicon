@@ -40,11 +40,11 @@ function [widthVal,fig] = PF_x(I, x, plotTitle, yTitle, xTitle)
 
     % Plot profile
     fig = figure('Color','w');
-    plot(x_um, I, 'LineWidth', 1.5);
+    plot(x_um, I, 'LineWidth', 2);
     hold on;
     axis tight; grid on;
-    xlabel(xTitle);
-    ylabel(yTitle);
+    xlabel(xTitle, 'FontSize', 15);
+    ylabel(yTitle, 'FontSize', 15);
     title(plotTitle);
 
     if isDonut
@@ -148,14 +148,14 @@ function fwhmVal = addGaussianFWHM(I, x)
          ':', 'LineWidth', 1.2, color='r');
 
     % plot(xHalfLeft*1e6, halfMax, 'o', ...
-    %      'MarkerSize', 7, 'LineWidth', 1.5, color='r');
+    %      'MarkerSize', 7, 'LineWidth', 2, color='r');
     % 
     % plot(xHalfRight*1e6, halfMax, 'o', ...
-    %      'MarkerSize', 7, 'LineWidth', 1.5, color='r');
+    %      'MarkerSize', 7, 'LineWidth', 2, color='r');
 
     text(mean([xHalfLeft xHalfRight])*1e6, halfMax, ...
         sprintf('%.3f \\mum', fwhmVal*1e6), ...
-        'VerticalAlignment', 'bottom');
+        'VerticalAlignment', 'bottom', 'FontSize',14);
 end
 
 
@@ -242,21 +242,21 @@ function donutVal = addDonutInnerDistance(I, x)
 
     % Plot lobe peaks
     % plot(x(idxLeftPeak)*1e6, IleftMax, 'o', ...
-    %      'MarkerSize', 8, 'LineWidth', 1.5, color='k');
+    %      'MarkerSize', 8, 'LineWidth', 2, color='k');
     % 
     % plot(x(idxRightPeak)*1e6, IrightMax, 'o', ...
-    %      'MarkerSize', 8, 'LineWidth', 1.5, color='k');
+    %      'MarkerSize', 8, 'LineWidth', 2, color='k');
 
     % Plot inner half-max points
     % plot(xHalfLeftInner*1e6, halfLeft, 'x', ...
-    %      'MarkerSize', 9, 'LineWidth', 1.5, color='r');
+    %      'MarkerSize', 9, 'LineWidth', 2, color='r');
     % 
     % plot(xHalfRightInner*1e6, halfRight, 'x', ...
-    %      'MarkerSize', 9, 'LineWidth', 1.5, color='r');
+    %      'MarkerSize', 9, 'LineWidth', 2, color='r');
 
     % Draw distance line
     plot([xHalfLeftInner xHalfRightInner]*1e6, [yLine yLine], ...
-         '--', 'LineWidth', 1.8, color='r');
+         '-', 'LineWidth', 1.8, color='r');
 
     plot([xHalfLeftInner xHalfLeftInner]*1e6, [0 yLine], ...
          ':', 'LineWidth', 1.2, color='r');
@@ -266,7 +266,7 @@ function donutVal = addDonutInnerDistance(I, x)
 
     text(mean([xHalfLeftInner xHalfRightInner])*1e6, yLine, ...
         sprintf('%.3f \\mum', donutVal*1e6), ...
-        'VerticalAlignment', 'bottom');
+        'VerticalAlignment', 'bottom', 'FontSize',14);
 end
 
 

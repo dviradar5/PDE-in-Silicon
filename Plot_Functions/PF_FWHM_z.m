@@ -25,7 +25,7 @@ function PF_FWHM_z(fwhm, z, plotTitle)
     hold off;
     
     grid on;
-    xlabel('z [\mum]'); ylabel('FWHM [\mum]');
+    xlabel('z [\mum]', 'FontSize',15); ylabel('FWHM [\mum]', 'FontSize',15);
     title(plotTitle);
     legend show;
 end

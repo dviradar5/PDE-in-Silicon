@@ -1,4 +1,4 @@
-%% Maybe change the n in the intensity because it changes
+%% FINISHED
 
 function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     % Beam propagation calcualtor
@@ -31,9 +31,8 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     dz = z(2)-z(1);
 
     k0 = 2*pi/probe.lambda;
-    k = sp.n * k0;
 
-    s = 1i * dz / (4*k);
+    s = 1i * dz / (4*sp.n*k0);
 
     L = lap1dNeumannCylR(rVec, dr);
     Aimp = speye(Nr) - s*L;
@@ -43,7 +42,10 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     mask = exp(-a * (rVec / rVec(end)).^b);
     
     E_rz = zeros(Nr, Nz);
+    I_rz = zeros(Nr, Nz);
+    
     E_rz(:,1) = E0_r(:);
+    I_rz(:,1) = sp.eps0 * sp.c0 * real(n_complex(:,1)) .* (abs(E0_r(:)).^2)/2;
 
     E = E0_r(:);
     
@@ -68,8 +70,8 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
         E = E .* mask;
 
         E_rz(:,iz) = E;
+        
+        I_rz(:,iz) = sp.eps0 * sp.c0 * n_real .* (abs(E).^2)/2;
+    
     end
-
-    I_rz = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(E_rz).^2;
-
 end

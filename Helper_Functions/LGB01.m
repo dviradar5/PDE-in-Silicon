@@ -1,6 +1,6 @@
-%% MAKE genral mode
+%% FINISHED
 
-function prf = LGB01(r, phi, z, lambda, w0, z0, E0, l)
+function prf = LGB01(r, phi, z, lambda, w0, z0, E0, n, l)
     % Laguerre–Gaussian with p=0, l=1 (mode01)
     % ---------------------------------------------------------------------
     % Calculates the electric field (assuming polarization in x direction),
@@ -18,15 +18,14 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0, l)
     %        z - z coordinate, propagation vector [m]
     %        lambda - beam's wavelength [m]
     %        w0 - waist radius at z=z0 [m]
-    %        E0 - amplitude at the origin, E(0,0)
     %        z0 - waist location along z [m]
+    %        E0 - amplitude at the origin, E(0,0)
+    %        n - medium refractive index
     %        l - LG polynomial index
     % OUTPUT:
     %        prf - complex field spatial profile in cylindrical coordinates
     % *********************************************************************
     
-    sp = systemParameters();
-
     Nr = length(r);
     Nz = length(z);
 
@@ -37,7 +36,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0, l)
 
     % Beam constants:
     k  = 2*pi/lambda;
-    zR = pi*sp.n*w0^2/lambda;
+    zR = pi*n*w0^2/lambda;
     
     % Generalized Laguerre polynom 01:
     L0l = 1;

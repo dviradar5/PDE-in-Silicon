@@ -26,7 +26,8 @@ function PF_x_alongz(I,x,z, plotTitle,ITitle)
     shading interp;
     colorbar; colormap turbo;
     axis tight; grid on;
-    xlabel('z [\mum]'); ylabel('x [\mum]');
-    zlabel(ITitle);
+    xlabel('z [\mum]', 'FontSize',15);
+    ylabel('x [\mum]', 'FontSize',15);
+    zlabel(ITitle, 'FontSize',15);
     title(plotTitle, 'Interpreter', 'latex');
 end

@@ -1,6 +1,6 @@
 %% FINISHED
 
-function prf = GB(r, z, lambda, w0, z0, E0)
+function prf = GB(r, z, lambda, w0, z0, E0, n)
     % Gaussian beam profile
     % ---------------------------------------------------------------------
     % Calculates the electric field (assuming polarization in x direction),
@@ -17,12 +17,11 @@ function prf = GB(r, z, lambda, w0, z0, E0)
     %        w0 - waist radius at z=z0 [m]
     %        E0 - amplitude at the origin, E(0,0)
     %        z0 - waist location along z [m]
+    %        n - medium refractive index
     % OUTPUT:
     %        prf - complex field spatial profile, Nr x Nz
     % *********************************************************************
     
-    sp = systemParameters();
-
     Nr = length(r);
     Nz = length(z);
 
@@ -30,7 +29,7 @@ function prf = GB(r, z, lambda, w0, z0, E0)
 
     % Beam constants:
     k  = 2*pi/lambda;
-    zR = pi*sp.n*w0^2/lambda;
+    zR = pi*n*w0^2/lambda;
     
     % Calculating E(x,y,z) for each element in z:
     for iz = 1:Nz

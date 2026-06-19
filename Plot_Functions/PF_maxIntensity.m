@@ -16,7 +16,8 @@ function PF_maxIntensity(I, t)
     figure('Color','w');
     plot(t*1e12, maxI);
     axis tight; grid on;
-    xlabel('t [ps]'); ylabel('Maximal Intensity [W/m^2]');
+    xlabel('t [ps]', 'FontSize',15);
+    ylabel('Maximal Intensity [W/m^2]', 'FontSize',15);
     title('Maximal Intensity');
 
 end

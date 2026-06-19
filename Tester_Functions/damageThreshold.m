@@ -19,10 +19,10 @@ function Ith = damageThreshold(I, tau, wl, title)
     % *********************************************************************
     
     % Damage-threshold flounce for laser with 775[nm] wavelength:
-    Fth_10ps = 0.7;                     % [J/cm^2]
-    Fth = Fth_10ps * sqrt(tau/10e-12);  % Correction for other widths
+    Fth_10ps = 0.7;                                 % [J/cm^2]
+    Fth = Fth_10ps*sqrt(tau/10e-12)*(wl/1064e-9);   % Corrections
 
-    Ith = Fth/tau;                      % [W/cm^2]
+    Ith = Fth/tau;                                  % [W/cm^2]
     
     [xMax,zMax,~] = findMax(I);
     Imax = I(xMax,zMax) * 1e-4;

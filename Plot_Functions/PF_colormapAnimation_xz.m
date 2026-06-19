@@ -28,6 +28,7 @@ function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title, lockClim
     if nargin < 9
         fps = 1;
     end
+    
     loops = 3;      % Repeat 3 times
 
     v = VideoWriter(vidName, 'MPEG-4');
@@ -45,8 +46,8 @@ function PF_colormapAnimation_xz(Arz, r, z, x, tIdx, vidName, cb_title, lockClim
     hImg = imagesc(ax, zVec*1e6, xVec*1e6, Axz0);
     axis(ax, 'xy');
     axis(ax, 'tight');
-    xlabel(ax, 'z [\mum]');
-    ylabel(ax, 'x [\mum]');
+    xlabel(ax, 'z [\mum]', 'FontSize',15);
+    ylabel(ax, 'x [\mum]', 'FontSize',15);
     colormap(ax, 'parula');
 
     % Optionally lock colorbar limits:
