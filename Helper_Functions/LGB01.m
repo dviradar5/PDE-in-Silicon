@@ -35,7 +35,7 @@ function prf = LGB01(r, phi, z, lambda, w0, z0, E0, n, l)
     p = 0;
 
     % Beam constants:
-    k  = 2*pi/lambda;
+    k  = 2*pi*n/lambda;
     zR = pi*n*w0^2/lambda;
     
     % Generalized Laguerre polynom 01:

@@ -28,7 +28,7 @@ function prf = GB(r, z, lambda, w0, z0, E0, n)
     prf = complex(zeros(Nr, Nz));
 
     % Beam constants:
-    k  = 2*pi/lambda;
+    k  = 2*pi*n/lambda;
     zR = pi*n*w0^2/lambda;
     
     % Calculating E(x,y,z) for each element in z:

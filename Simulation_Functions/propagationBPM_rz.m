@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECKKKKKK s and phase
 
 function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     % Beam propagation calcualtor
@@ -32,7 +32,8 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
 
     k0 = 2*pi/probe.lambda;
 
-    s = 1i * dz / (4*sp.n*k0);
+    % For half-step dz/2:
+    s = 1i * dz / (8*sp.n*k0);
 
     L = lap1dNeumannCylR(rVec, dr);
     Aimp = speye(Nr) - s*L;
@@ -50,20 +51,27 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     E = E0_r(:);
     
     for iz = 2:Nz
-        % Half-diffraction CN:
+        % Half-step diffraction CN:
         E = Aimp \ (Aexp * E);
 
         % Medium step:
         n_real = real(n_complex(:,iz));
-        n_imag = imag(n_complex(:,iz));
-
+        %n_imag = imag(n_complex(:,iz));
+        
+        % Use midpoint refractive index in z.
+        n_mid = 0.5 * (n_complex(:,iz-1) + n_complex(:,iz));
+        deltaBeta = k0 * (n_mid.^2 - sp.n^2) / (2*sp.n);
+        %deltaBeta = k0 * (n_mid - sp.n);
+        
+        % Phase from Δn and extinction coefficient:
+        E = E .* exp(1i * deltaBeta * dz);
+        
         % Phase from Δn:
-        E = E .* exp( 1i * k0 * (n_real - sp.n) * dz );
-
+        %E = E .* exp( 1i * k0 * (n_real.^2 - sp.n^2)/(2*sp.n) * dz );
         % Absorption from extinction coefficient:
-        E = E .* exp( -k0 * n_imag * dz );
+        %E = E .* exp( -k0 * n_imag * dz );
 
-        % Half-diffraction CN:
+        % Half-step diffraction CN:
         E = Aimp \ (Aexp * E);
         
         % PML mask to avoid boundary reflections:
@@ -71,7 +79,7 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
 
         E_rz(:,iz) = E;
         
-        I_rz(:,iz) = sp.eps0 * sp.c0 * n_real .* (abs(E).^2)/2;
+        I_rz(:,iz) = 0.5 * sp.eps0 * sp.c0 * n_real .* abs(E).^2;
     
     end
 end

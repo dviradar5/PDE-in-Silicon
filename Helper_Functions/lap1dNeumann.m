@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECKKKKKKKKK
 
 function L = lap1dNeumann(N, d)
     % 1D cartesian laplacian calculator

@@ -24,44 +24,42 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it)
     n_imag_x = 1e-2 * imag(n_xz) * 4 * pi/ lambda;  % α, [1/cm]
     
     % Refractive index:
-    figure('Color','w');
-    imagesc(z*1e6, x*1e6, real(n_xz));
-    
-    hold on
-    xline(z(iz)*1e6, '--w', sprintf('z = %.2f \\mum', z(iz)*1e6), LineWidth=3);
+    figure("Color",'w');
+    imagesc(z*1e6, x*1e6, real(n_xz)); hold on
+    xline(z(iz)*1e6, '--w', sprintf("z = %.2f \\mum", z(iz)*1e6), LineWidth=3);
     hold off
     
-    set(gca,'YDir','normal'); axis tight;
-    xlabel('z [\mum]', 'FontSize',15); ylabel('x [\mum]', 'FontSize',15);
-    title(sprintf('Refraction at t=%d[ps]',it*1e12));
+    set(gca,"YDir","normal"); axis tight;
+    xlabel("z [\mum]", "FontSize",15);
+    ylabel("x [\mum]", "FontSize",15);
+    title(sprintf("Refraction at t=%d[ps]",it*1e12));
     colorbar;
 
     % Absorption coefficient:
-    figure('Color','w');
-    imagesc(z*1e6, x*1e6, n_imag_x);
-    
-    hold on
-    xline(z(iz)*1e6, '--w', sprintf('z = %.2f \\mum', z(iz)*1e6), LineWidth=3);
+    figure("Color",'w');
+    imagesc(z*1e6, x*1e6, n_imag_x); hold on
+    xline(z(iz)*1e6, '--w', sprintf("z = %.2f \\mum", z(iz)*1e6), LineWidth=3);
     hold off
     
-    set(gca,'YDir','normal'); axis tight;
-    xlabel('z [\mum]', 'FontSize',15); ylabel('x [\mum]', 'FontSize',15);
-    title(sprintf('Absorption at t=%d[ps]',it*1e12));
+    set(gca,"YDir","normal"); axis tight;
+    xlabel("z [\mum]", "FontSize",15);
+    ylabel("x [\mum]", "FontSize",15);
+    title(sprintf("Absorption at t=%d[ps]",it*1e12));
     cb = colorbar(gca);
     cb.Label.String = "\alpha [1/cm]";
     
     % Combined graphs:
-    figure('Color','w');
+    figure("Color",'w');
     ax = gca;
     yyaxis right;  plot(x*1e6, n_imag_x(:,iz), "r", LineWidth=3, LineStyle= ":");
-    ylabel('\alpha [1/cm]'); ax.YColor = 'r';     
+    ylabel("\alpha [1/cm]", "FontSize", 15); ax.YColor = 'r';     
     
     yyaxis left; plot(x*1e6, real(n_xz(:,iz)), "m", LineWidth=3);
-    ylabel('n'); ax.YColor = 'm';
+    ylabel('n', "FontSize", 15); ax.YColor = 'm';
 
     axis tight; grid on;
-    xlabel('x [\mum]');
-    legend('n','\alpha');
-    title(sprintf('Refraction and Absorption at z=%.2d[m] at t=%d[ps]',z(iz),it*1e12));
+    xlabel("x [\mum]", "FontSize", 15);
+    legend("n","\alpha");
+    title(sprintf("Refraction and Absorption at z=%.2d[m] at t=%d[ps]",z(iz),it*1e12));
 
 end

@@ -1,4 +1,4 @@
-%% FINISHED
+%% CHECKKKKK
 
 function L = lap1dNeumannCylR(r, dr)
     % 1D cylindrical laplacian calculator
@@ -28,7 +28,6 @@ function L = lap1dNeumannCylR(r, dr)
         lower(i-1) = 1/dr^2 - 1/(2*dr*r(i));
         upper(i)   = 1/dr^2 + 1/(2*dr*r(i));
     end
-    
     
     main(1)  = -4/dr^2;
     upper(1) =  4/dr^2;

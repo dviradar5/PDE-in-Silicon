@@ -1,5 +1,4 @@
-%% CHECK BL DUMPING
-%% CHECK PROFILE (ADD n)
+%% FINISHED
 
 classdef laser
     % Laser Beam Class
@@ -182,7 +181,7 @@ classdef laser
             I = 0.5 * sp.n * sp.eps0 * sp.c0 * abs(this.profile).^2;
         end
 
-        function I = intensityProfileBLDumped(this, z)  % Maybe change the alpha when it changes
+        function I = intensityProfileBLDumped(this, z)
             % Builds intensity matrix including Beer-Lmbert's law
             % -------------------------------------------------------------
             % Calculates and returns peak spatial intensity including

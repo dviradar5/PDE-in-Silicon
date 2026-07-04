@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc; clear;
-%close all;
+close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Paraneters and Vector Definitions
@@ -15,18 +15,18 @@ clc; clear;
 sp = systemParameters();
 
 % Temporal vector intialization:
-tf = 3000;                              % 3[ns]
-t = 0:10:tf;
-t = t .* 1e-12;                         % Time vector, 0-3[ns], [s]
+tf = 150;                               % 150 [ps]
+t = 0:5:tf;
+t = t .* 1e-12;                         % Time vector, 0-300 [ps], [s]
 Nt = numel(t);
 
 % Spatial vectors intialization:
-Nr = 501;                               % Number of elements
-Nz = 501;
+Nr = 1001;                              % Number of elements
+Nz = 1001;
 
 z = linspace(0, sp.Lz2, Nz);            % 25 micron
 
-r = linspace(0,sp.Lx,Nr);               % 10x10 micron sample
+r = linspace(0,4*sp.Lx,Nr);             % 20x20 micron sample
 phi = atan(1);                          % y = x, radial symmetry
 
 x = linspace(-sp.Lx, sp.Lx, 2*Nr-1);
@@ -40,27 +40,86 @@ Nx = numel(x);
 % =========================================================================
 
 % Pump parameters:
-pump_width = 3e-11;                     % Pulse of 30[ps]
+pump_width = 30e-12;                    % Pulse of 30[ps] 50
 pump_E = 35e-9;                         % Beam total energy [J]
-pump_w0 = 2.7e-6;                       
-z0 = 5e-6;                              % Beam waist location
+pump_w0 = 4.24e-6;                      % 1.185 3.385
+z0 = 25e-6;                             % Beam waist location
 l = 1;                                  % LG polynomial index
 
+% Probe parameters:
+% probe_width = 30e-12;                   % Pulse of 50[ps]
+% probe_w0 = 5e-6;                    % 1.875e-6          try really wide one           
+% n = (sp.n + 1i*sp.alpha*sp.wl2/(4*pi))*ones(Nr,Nz);                     % Includes BL 
+% 
+% probe = laser(sp.wl2, probe_width, pump_E/100, "Gauss", r, phi, z, probe_w0, 0, sp.n);   % 775[nm]
+% 
+% Different energies:
+% L = [0,50e-9,75e-9,100e-9];
+% labels = ["No Pump","50 [nJ]","75 [nJ]","100 [nJ]"];
+% L = [0,1.185e-6,3.385e-6,5e-6,7.5e-6];%,1.185e-6
+% labels = ["No Pump","1.185 [\mum]","3.385 [\mum]","5 [\mum]","7.5 [\mum]"];%,"1.185 [\mum]"
+% L = [1,2];
+% labels = ['1','2'];
+% 
+% Dfigs = gobjects(1,numel(L));
+% Ifigs = gobjects(1,numel(L));
+% 
+% for i = 1:numel(L)
+%     %pump = laser(sp.wl2, pump_width, L(i), "Donut", r, phi, z, pump_w0, z0, sp.n, l);
+%     %pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, L(i), z0, sp.n, l);
+%     pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0, sp.n, L(i));
+% 
+%     %Ipump = pump.intensityProfileBLDumped(z);
+%     %Ipump_xz = cylToCart(Ipump,r,x);
+%     %PF_plot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
+% 
+%     pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
+%     [~, ~, itMax] = findMax(pDiff); 
+% 
+%     n_complex = complexRefractiveIndex(pDiff, pump.lambda);
+%     %PF_complexRefractiveIndex(n_complex(:,:,itMax), r, z, x, pump.lambda, 1, t(itMax));
+% 
+%     if L(i) == 0
+%         %probe = laser(sp.wl2, probe_width, 1e-9, "Gauss", r, phi, z, probe_w0, 0, sp.n);
+%         [~, I] = propagationBPM_rz(probe.profile(:,1),r,z,probe,n,0,8);    % [W/m^2]
+%     else
+%         %probe = laser(sp.wl2, probe_width, L(i)/100, "Gauss", r, phi, z, probe_w0, 0, sp.n);
+%         [~, I] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax),4,20);
+%     end
+% 
+%     I_xz = cylToCart(I,r,x);
+% 
+%     %interactiveIxMovie(I_xz*1e-4, x, z, "Probe I(x,z)");
+%     %PF_plot_xz(I_xz*1e-4, z, x, "Probe Intensity");
+% 
+%     Imax = max(I_xz);% .* exp(sp.alpha * z);
+%     Ifigs(i) = figure('Color','w');
+%     plot(z*1e6,Imax/Imax(1),'LineWidth', 3);
+%     xlabel("z [\mum]"); ylabel("Intensity [au]");
+%     title(labels(i));
+% 
+%     %PF_x(I_xz(:,end)*1e-4,x,"Undisturbed Probe Intensity at the Sample End","Intensity [W/cm^2]");
+%     PF_x_alongz(I_xz*1e-4,x,z,"Propagated Probe Intensity");
+% 
+%     [Dfigs(i),~] = computeDiameter(I, r, z, "Gauss","Propogated Probe Diameter"); 
+% end
+% 
+% PF_combinePlots(L, labels, Dfigs,"Width [\mum]" , '');
+% PF_combinePlots(L, labels, Ifigs,"Intensity [au]" , '');
+
 % Pump laser:
-pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0,l);  % 775[nm]
+pump = laser(sp.wl2, pump_width, pump_E, "Donut", r, phi, z, pump_w0, z0, sp.n, l);  % 775[nm]
+
 Ipump = pump.intensityProfileBLDumped(z);
 Ipump_xz = cylToCart(Ipump,r,x);
 
 % Plotting pump intensity:
-%PF_plot_xz(Ipump_xz*1e-4, z, x, "Pump Intensity [W/cm^2]");
 %PF_plot_xz(Ipump_xz/max(Ipump_xz(:)), z, x, "Pump Normalized");
 %PF_x(Ipump_xz(:,end)*1e-4,x,"Pump Intensity at the Sample End","Intensity [W/cm^2]");
+%PF_x(Ipump_xz(:,1)*1e-4,x,"Pump Intensity at the Sample Front","Intensity [W/cm^2]");
 
-damageThreshold(Ipump, pump_width, pump.lambda, 'Pump:');
-
-iz = 1;     % z=0
-%PF_beamIntensityPlot_xy(Ipump(:,iz), r, x, z(iz));
-%PF_beamIntensityPlot_xy(Ipump(:,1)/max(Ipump(:,1)), r, x, 1);
+%computeDiameter(Ipump, r, z, "Donut","Pump Diameters");
+damageThreshold(Ipump, pump_width, pump.lambda, "Pump:");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% FCC Creation & Diffusion
@@ -70,9 +129,9 @@ iz = 1;     % z=0
 pDiff = FCCDiffusion(pump, t, r, z);    % Creates FCC distribution p(r,z,t)
 
 % Finding the time when we get maximal concentration:
-[~, ~, itMax] = findMax(pDiff);         % itMax = 12 = 110[ps]
+[~, ~, itMax] = findMax(pDiff);        % itMax = 12 = 110[ps]
+%pxz = cylToCart(pDiff(:,:,itMax),r,x) * 1e-6;
 
-pxz = cylToCart(pDiff(:,:,itMax),r,x) * 1e-6;
 %PF_x(pxz,x,"FCC Maximal Concentration in [1/cm^3] at t=110[ps]")
 %PF_plot_xz(pxz,z,x,"FCC Maximal Concentration in [1/cm^3] at t=110[ps]");
 
@@ -96,28 +155,32 @@ n_complex = complexRefractiveIndex(pDiff, pump.lambda);
 % =========================================================================
 
 % Probe laser:
-probe_wd = 5e-11;                       % Pulse of 50[ps]
+probe_width = 30e-12;                   % Pulse of 30[ps]
 probe_E = pump.pulse_energy/100;        % [J]
-probe_w0 = 12e-6;%2.7e-6                       
+probe_w0 = 2.267e-6;                    % 2.378 [um]
+z0 = 0;                                 % sp.Lz2
 
-probe = laser(sp.wl2, probe_wd, probe_E, "Gauss", r, phi, z, probe_w0, 0);   % 775[nm]
-Iprobe = probe.intensityProfileBLDumped(z);
+probe = laser(sp.wl2, probe_width, probe_E, "Gauss", r, phi, z, probe_w0, z0, sp.n);   % 775[nm]
+
+% Undisturbed probe propagating through the sample:
+n = (sp.n + 1i*sp.alpha*sp.wl2/(4*pi))*ones(Nr,Nz);                     % Includes BL 
+[~, Iprobe] = propagationBPM_rz(probe.profile(:,1),r,z,probe,n,0,8);    % [W/m^2]
+%Iprobe = probe.intensityProfileBLDumped(z);
 Iprobe_xz = cylToCart(Iprobe,r,x);
 
-%PF_plot_xz(Iprobe_xz, z, x, "Probe Intensity [W/m^2]");
 %PF_plot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x, "Probe Normalized");
-%PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at the Sample End",'Intensity [W/cm^2]');
+%PF_x(Iprobe_xz(:,1)*1e-4,x,"Undisturbed Probe Intensity at the Sample Front","Intensity [W/cm^2]");
+PF_x(Iprobe_xz(:,end)*1e-4,x,"Undisturbed Probe Intensity at the Sample End","Intensity [W/cm^2]");
+PF_x_alongz(Iprobe_xz*1e-4,x,z,"Propagated Probe Intensity");
 
 %absorptionDepth(Iprobe(1,:),z,probe.lambda);
-damageThreshold(Iprobe, probe_wd, probe.lambda, 'Undisturbed Probe:');
+damageThreshold(Iprobe, probe_width, probe.lambda, "Undisturbed Probe:");
 
-% Cutting the Probe:
-%aperture = rectpuls(r,3.506e-6);
-%Icut = aperture' .* Iprobe(:,1);
-%Icut_xz = cylToCart(Icut,r,x);
-%PF_x(Icut_xz,x,"Probe Intensity at Surface After Cutting");
-
+% Probe Diameter:
+%computeDiameterTheoretically(z, "Gauss",0, sp.wl2, probe_w0, 0, sp.n);
+%computeDiameter(Iprobe, r, z, "Gauss");
 %PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% FCC Slicing
@@ -127,7 +190,6 @@ damageThreshold(Iprobe, probe_wd, probe.lambda, 'Undisturbed Probe:');
 %slice_width = 0.5;  % In microns. 25 = 1 slice
 
 %[deltaFWHM_all, minFWHM_all, izSlices] = sliceContribution(pDiff(:,:,itMax), pump, probe, r, z, slice_width);
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Probe Propogation (BPM)
@@ -149,26 +211,30 @@ b = 8;
 [~, I] = propagationBPM_rz(probe.profile(:,1), r, z, probe, n_complex(:,:,itMax),a,b);
 I_xz = cylToCart(I,r,x);
 
-damageThreshold(I, probe_wd, probe.lambda, 'Propagated Probe:');
-PF_x_alongz(I_xz*1e-4,x,z,"Probe Intensity 110[ps] delay");
-PF_x(I_xz(:,end)*1e-4,x,"Probe Intensity at sample end and 110[ps] delay",'Intensity [W/cm^2]');
+damageThreshold(I, probe_width, probe.lambda, "Propagated Probe:");
+[f1,~] = computeDiameter(I, r, z, "Gauss","Propogated Probe Diameter");
+
+% Checking for losses:
+fprintf("\nUndisturbed Probe:");
+[P_lost, T, P_back] = powerLoss(Iprobe, r);
+fprintf("\nPropagated Probe:");
+[Pp_lost, Tp, Pp_back] = powerLoss(I, r);
 
 % Finding the z index where we get maximal intensity or focusing:
 % [~, izMax,~] = findMax(Ipropogate_xz(:,:,itMax));
 [~, izMax,~] = findMax(I_xz);
-prpFWHM = FWHM(I(:,:),r);
-[~,i] = min(prpFWHM);
+% prpFWHM = FWHM(I(:,:),r);
+% [~,i] = min(prpFWHM);
 
-%PF_plot_xz(Ipropogate_xz(:,:,itMax),z,x)
+PF_x_alongz(I_xz*1e-4,x,z,"Propagated Probe Intensity");
+PF_x(I_xz(:,end)*1e-4,x,"Propagated Probe Intensity at the Sample End","Intensity [W/cm^2]");
+
 %PF_x(Ipropogate_xz(:,izMax,itMax),x,"Probe Intensity at Maximum Focusing and 110[ps] delay");
+
+%interactiveIxMovie(I_xz*1e-4, x, z, "Probe I(x,z)");
+%PF_x(I_xz(:,i)*1e-4,x,"Probe Intensity at Maximum Focusing and 110[ps] delay","Intensity [W/cm^2]");
 %PF_plot_xz(I_xz,z,x,"Probe Intensity 110[ps] delay",izMax);
 % PF_x_alongz(Iprobe_xz,x,z,"Undisturbed Probe Intensity 110[ps] delay");
-PF_x(I_xz(:,end)*1e-4,x,"Probe Intensity at sample end and 110[ps] delay",'Intensity [W/cm^2]');
-PF_x(I_xz(:,i)*1e-4,x,"Probe Intensity at Maximum Focusing and 110[ps] delay",'Intensity [W/cm^2]');
-PF_x_alongz(I_xz*1e-4,x,z,"Probe Intensity 110[ps] delay");
-
-%PF_FWHM_z(FWHM(Iprobe,r),z,"Undisturbed Probe FWHM");
-% PF_FWHM_z(prpFWHM,z,"Propagated Probe FWHM");
 
 %nxz = cylToCart(n_complex(:,:,itMax),r,x);
 %PF_x(imag(nxz(:,:)),x,"k 110[ps] delay");
@@ -198,19 +264,33 @@ PF_x_alongz(I_xz*1e-4,x,z,"Probe Intensity 110[ps] delay");
     %fwhm(:,i) = FWHM(Ipropagate_xz(:,:,i),x);
 %end
 
-%PF_FWHM_z(fwhm(:,itMax),z,sprintf('Propogated Probe FWHM at %d[ps]', t(itMax)*1e12));
+%PF_FWHM_z(fwhm(:,itMax),z,sprintf("Propogated Probe FWHM at %d[ps]", t(itMax)*1e12));
 
 % FWHM vs. t:
 %tmin = min(fwhm(:));
-% figure('Color','w');
+% figure("Color",'w');
 % plot(t,tmin(:))
 % grid on; axis tight;
-% xlabel("t [ps]"); ylabel('Minimal FWHM [\mum]');
+% xlabel("t [ps]"); ylabel("Minimal FWHM [\mum]");
 
-% Comparing the probe with and without pump:I = {Iprobe_xz, Ipropogate_xz(:,:,itMax)};      % List of intensities Nx x Nz
-names = {'0[nJ]','35[nJ]'};
-izList = {i,i};
-PF_probeComparison({Iprobe_xz,I_xz}, names, x, z, t(itMax), izList);
+% Comparing the probe with and without pump:
+names = {"No Pump","35[nJ]"};
+izList = {Nz,Nz};
+PF_probeComparison({Iprobe_xz/max(Iprobe_xz(:,end)),I_xz/max(Iprobe_xz(:,end))}, names, x, z, t(itMax), izList);
+
+figure('Color', 'w');
+plot(z * 1e6, I(1, :) / max(Iprobe(1, :)), 'LineWidth', 2);
+xlabel('z [\mum]');
+ylabel('Intensity Ratio (I_{pump} / I_{no-pump})');
+title('Probe Intensity Enhancement due to Pump');
+grid on;
+
+figure('Color', 'w');
+plot(z * 1e6, I(1, :) ./ Iprobe(1, :), 'LineWidth', 2);
+xlabel('z [\mum]');
+ylabel('Intensity Ratio (I_{pump} / I_{no-pump})');
+title('Probe Intensity Enhancement due to Pump');
+grid on;
 
 % Checking the maximal intensity vs. delay time:
 %PF_maxIntensity(Ipropagate_xz, t);   
@@ -224,7 +304,7 @@ PF_probeComparison({Iprobe_xz,I_xz}, names, x, z, t(itMax), izList);
 
 % Different pump energies:
 % energies = [0, 10, 20, 30, 35, 64] * 1e-9;   % [J]
-% names = {'0[nJ]','10[nJ]','20[nJ]','30[nJ]','35[nJ]','64[nJ]'};
+% names = {"0[nJ]","10[nJ]","20[nJ]","30[nJ]","35[nJ]","64[nJ]"};
 % 
 % Ilist = cell(1, numel(energies));
 % izList = cell(1, numel(energies));

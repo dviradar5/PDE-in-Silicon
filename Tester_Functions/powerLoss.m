@@ -9,7 +9,7 @@ function [P_lost, T, P_back] = powerLoss(I, r)
     % INPUTS:
     %        I - intensity matrix, Nr x Nz, [W/m^2]
     %        r - radial coordinate vector [m]
-    % OUTPUT:
+    % OUTPUTS:
     %        P_lost - Pi-Pf, [W]
     %        T - percentage of power transmitted
     %        P_back - Pf, [W]

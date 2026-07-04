@@ -24,7 +24,7 @@ function PF_x_alongz(I,x,z, plotTitle,ITitle)
     figure('Color','w');
     surf(z*1e6,x*1e6, I);
     shading interp;
-    colorbar; colormap turbo;
+    colorbar;
     axis tight; grid on;
     xlabel('z [\mum]', 'FontSize',15);
     ylabel('x [\mum]', 'FontSize',15);

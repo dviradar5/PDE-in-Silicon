@@ -1,3 +1,5 @@
+%% CHECKKKKKKKKKKKKKK
+
 function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_probe)
     % ---------------------------------------------------------------------
     % Evaluates the effect of pump waist (w0) and focal position (z0) on 
