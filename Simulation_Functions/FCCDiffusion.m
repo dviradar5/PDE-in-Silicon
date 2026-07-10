@@ -3,9 +3,9 @@
 function p = FCCDiffusion(pump, t, r, z)
     % FCC diffusion calculator
     % ---------------------------------------------------------------------
-    % Numerically calculates spatial and temporal free-charge carriers (FCC)
-    % distribution inside the Silicon sample using the diffusion equation
-    % in cylindrical coordinates
+    % Numerically calculates spatial and temporal free-charge carriers
+    % (FCC) distribution inside the Silicon sample using the diffusion
+    % equation in cylindrical coordinates
     %
     % The diffusion equation we solve:
     %                  ∂p/∂t = D*∇²p - p/τ + G(r,z,t)
@@ -13,8 +13,8 @@ function p = FCCDiffusion(pump, t, r, z)
     % third is generation, taking into account FCC's generation time (about
     % 100[ps] according to empirical results) so it won't be instantaneous
     %
-    % Uses Crank-Nicolson method in time with operator splitting and the
-    % appropriate laplacians with Neumann BC (du/dx=0)
+    % Uses split Crank-Nicolson method in time with operator splitting and
+    % the appropriate laplacians with Neumann BC (du/dx=0)
     % =====================================================================
     % INPUTS:
     %        pump - pump laser beam, Laser-type object
@@ -40,7 +40,7 @@ function p = FCCDiffusion(pump, t, r, z)
     p = zeros(Nr,Nz,Nt);
     
     % The total FCC density distribution that would be created by the pump pulse:
-    I = pump.intensityProfileBLDumped(z);     % [W/m^2]
+    I = pump.intensityProfileBLDumped(z);       % [W/m^2]
     p_gen = intensityToCarriers(I, pump.pulse_width, pump.lambda); % [m^-3]
     
     % Generation term:
@@ -53,31 +53,63 @@ function p = FCCDiffusion(pump, t, r, z)
     g_int = trapz(t, g);    % Integrated generation term G
     w = g ./ g_int;         % Normalization
 
-    % Crank-Nicolson method with operator splitting:
-    Sr = lap1dNeumannCylR(r, dr);           % Nr x Nr
-    Sz = lap1dNeumann(Nz, dz);              % Nz x Nz
+    % For instant generation:
+    %p(:,:,1) = p_gen;
+
+    % Split Crank-Nicolson method with operator splitting:
+    Lr = lap1dNeumannCylR(r, dr);                       % Nr x Nr
+    Lz = lap1dNeumann(Nz, dz);                          % Nz x Nz
     
     Ir = speye(Nr);
     Iz = speye(Nz);
     
     % Total laplacian acting on p(r,t):
-    Ar = (Ir - 0.5*sp.D*dt*Sr);
-    Br = (Ir + 0.5*sp.D*dt*Sr);
+    Mplus_r = (Ir - 0.5*sp.D*dt*Lr);
+    Mminus_r = (Ir + 0.5*sp.D*dt*Lr);
 
-    Az = (Iz - 0.5*sp.D*dt*Sz);
-    Bz = (Iz + 0.5*sp.D*dt*Sz);
+    Mplus_z = (Iz - 0.5*sp.D*dt*Lz);
+    Mminus_z = (Iz + 0.5*sp.D*dt*Lz);
 
     for i = 2:Nt
         % Diffusion:
-        temp1 = Ar \ (p(:,:,i-1) * Bz);     % Nr x Nz
-        temp2 = (Br * temp1) / Az;          % Nr x Nz
+        temp1 = Mplus_r \ (p(:,:,i-1) * Mminus_z);      % Nr x Nz
+        temp2 = (Mminus_r * temp1) / Mplus_z;           % Nr x Nz
         
-        % Generation:
+        % Generation (not instant):
         temp2 = temp2 + p_gen * (w(i) * dt);
   
         % Recombination:
         %p(:,:,i) = temp2 * (1 - dt/sp.tau);
-        p(:,:,i) = temp2 * exp(-dt/sp.tau);
+        p(:,:,i) = temp2 * exp(-dt/sp.tau);             % Exact solution
     end
+end
+
+%% Helper:
+function N = intensityToCarriers(I, tau, lambda)
+    % Converts intensity to carrier concentration
+    % ---------------------------------------------------------------------
+    % Calculates electron/hole concentration given the intensity profile
+    % 
+    % Assumes quantum efficiency of 1 (also means that Ne = Nh)
+    % 
+    % Fluence calculation takes into account the entire pulse:
+    %              I(r,z,t) = I(r,z) * exp(−4ln(2)*(t/τ)^2​)
+    %         => F = ∫​I(r,z,t)dt = I(r,z) * sqrt(pi/ln(2)) * τ/2
+    % =====================================================================
+    % INPUTS:
+    %        I - intensity spatial profile, Nr x Nz
+    %        tau - gaussian envelope duration [s] 
+    %        lambda - beam's wavelength [m]
+    % OUTPUT:
+    %        N - carrier concentration [m^-3]
+    % *********************************************************************
+
+    sp = systemParameters();
+    
+    F = I * (tau/2) *sqrt(pi/log(2));       % [J/m^2]
+
+    Eph = sp.h * sp.c0 / lambda;                % [J]
+
+    N = sp.alpha .* F / Eph;                % [1/m^3]
 
 end

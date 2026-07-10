@@ -27,18 +27,18 @@ function n = complexRefractiveIndex(pDiff, lambda)
         N = pDiff(:,:,it);          
     
         % Bennett–Soref expects Ne, Nh at pump wavelength of 1550nm:
-        %[dn, dalpha] = BennettSoref(N, N); % Ne = Nh since 1 photon -> e + h
+        %[dn, dalpha] = BennettSoref(N, N); % Ne=Nh since 1 photon -> e + h
         
         % Fixing wavelength dependancy according to Drude model:
         %dn = dn .* (lambda / 1550e-9)^2;
         %dalpha = dalpha .* (lambda / 1550e-9)^2;
         
         % Drude model:
-        [dn, dalpha] = Drude(N, N, lambda); % Ne = Nh since 1 photon -> e + h
+        [dn, dalpha] = Drude(N, N, lambda); % Ne=Nh since 1 photon -> e + h
 
         n(:,:,it) = (sp.n + dn) + 1i*(sp.alpha + dalpha)*lambda/(4*pi);
     end
     
-    % Calculating relative permitivity, assuming non-magnetic sample μ = μ0:
+    % Calculating relative permitivity, assuming non-magnetic sample μ=μ0:
     %epsilon_r = n.^2; 
 end

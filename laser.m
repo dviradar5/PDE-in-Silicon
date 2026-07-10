@@ -59,13 +59,13 @@ classdef laser
             this.z0 = z0;
 
             % Computing correct peak field amplitude E0:
-            this.E0 = this.computeE0FromEnergy();
+            this.E0 = this.computeE0FromEnergy(n);
 
             % Building spatial field profile:
             this.profile = this.beamProfile(this.type, r, phi, z, this.w0, this.z0, this.E0, n, l);
         end       
 
-        function E0 = computeE0FromEnergy(this)
+        function E0 = computeE0FromEnergy(this,n)
             % Computes peak electric field amplitude
             % -------------------------------------------------------------
             % Calculates E0, the electric field's amplitude at the pulse's
@@ -83,8 +83,9 @@ classdef laser
             % both space and time:
             %           E = I0 * (pi*τ*w0^2/4) * sqrt(pi/ln(2))
             % =============================================================
-            % INPUT:
+            % INPUTS:
             %        this - this laser-type object
+            %        n - medium refractive index
             % OUTPUT:
             %        E0 - peak field amplitude at waist center [V/m]
             % *************************************************************
@@ -99,9 +100,13 @@ classdef laser
             % Results of the integrals:
             spatialInt = pi*(this.w0^2)/2;
             temporalInt = this.pulse_width*sqrt(pi/log(2))/2;
-
-            I0 = this.pulse_energy / (spatialInt * temporalInt);    % [W/m^2]
-            E0 = sqrt(2*I0/(sp.n*sp.eps0*sp.c0));                   % [V/m]
+            
+            % Fresnel coefficients:
+            %R = abs((1 - n)/(n + 1))^2;     % Reflection
+            %T = 1-R;                        % Transmission
+            
+            I0 = this.pulse_energy/(spatialInt*temporalInt);    % [W/m^2]
+            E0 = sqrt(2*I0/(n*sp.eps0*sp.c0));                  % [V/m]
         end
         
         function energy = computeEnergyFromE0(this)
@@ -158,7 +163,7 @@ classdef laser
                 prf = GB(r, z, this.lambda, w0, z0, E0, n);
             
             elseif string(type) == "Donut"
-                prf = LGB01(r, phi, z, this.lambda, w0, z0, E0, n, l);
+                prf = LG0B(r, phi, z, this.lambda, w0, z0, E0, n, l);
             
             else
                 error("Inappropriate type. Please use 'Gauss' or 'Donut'");

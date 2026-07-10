@@ -1,10 +1,10 @@
-%% CHECKKKKKK s and phase
+%% FINISHED
 
 function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     % Beam propagation calcualtor
     % ---------------------------------------------------------------------
-    % Calaculates the probe's propagation inside the sample using BPM in
-    % cylindrical coordinates with perfect matched layer boundary
+    % Calaculates the probe's propagation inside the sample using FD-BPM in
+    % cylindrical coordinates with perfectly matched layer boundary
     % conditions
     % =====================================================================
     % INPUTS:
@@ -13,8 +13,8 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     %        z - z coordinate, propagation vector [m]
     %        probe - probe laser beam, Laser-type object
     %        n_complex - complex refractive index matrix at specific time, Nr x Nz
-    %        a - PML mask parameter
-    %        b - PML mask parameter
+    %        a - mask parameter
+    %        b - mask parameter
     % OUTPUTS:
     %        E_rz - complex field inside the sample, Nr x Nz [V/m]
     %        I_rz - intensity in the sample, Nr x Nz [W/m^2]
@@ -33,53 +33,51 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
     k0 = 2*pi/probe.lambda;
 
     % For half-step dz/2:
-    s = 1i * dz / (8*sp.n*k0);
+    s = 1i*dz/(8*sp.n*k0);
 
     L = lap1dNeumannCylR(rVec, dr);
-    Aimp = speye(Nr) - s*L;
-    Aexp = speye(Nr) + s*L;
-    
-    % PML mask:
+    Mplus = speye(Nr) - s*L;
+    Mminus = speye(Nr) + s*L;
+
+    % Edge-absoring mask:
     mask = exp(-a * (rVec / rVec(end)).^b);
-    
+
     E_rz = zeros(Nr, Nz);
     I_rz = zeros(Nr, Nz);
-    
+
     E_rz(:,1) = E0_r(:);
-    I_rz(:,1) = sp.eps0 * sp.c0 * real(n_complex(:,1)) .* (abs(E0_r(:)).^2)/2;
+    I_rz(:,1) = 0.5 * sp.eps0 * sp.c0 * real(n_complex(:,1)) .* (abs(E0_r(:)).^2);
 
     E = E0_r(:);
-    
+
     for iz = 2:Nz
         % Half-step diffraction CN:
-        E = Aimp \ (Aexp * E);
+        E = Mplus \ (Mminus * E);
 
         % Medium step:
-        n_real = real(n_complex(:,iz));
+        %n_real = real(n_complex(:,iz));
         %n_imag = imag(n_complex(:,iz));
-        
-        % Use midpoint refractive index in z.
-        n_mid = 0.5 * (n_complex(:,iz-1) + n_complex(:,iz));
-        deltaBeta = k0 * (n_mid.^2 - sp.n^2) / (2*sp.n);
-        %deltaBeta = k0 * (n_mid - sp.n);
-        
-        % Phase from Δn and extinction coefficient:
-        E = E .* exp(1i * deltaBeta * dz);
-        
+        %
         % Phase from Δn:
-        %E = E .* exp( 1i * k0 * (n_real.^2 - sp.n^2)/(2*sp.n) * dz );
+        %E = E .* exp(1i*k0*(n_real.^2 - sp.n^2)/(2*sp.n)*dz);
         % Absorption from extinction coefficient:
-        %E = E .* exp( -k0 * n_imag * dz );
+        %E = E .* exp(-k0*n_imag*dz);
+
+        % Using midpoint refractive index in z to better approximate nc:
+        n_mid = 0.5 * (n_complex(:,iz-1) + n_complex(:,iz));
+
+        % Phase from Δn and from the extinction coefficient:
+        deltaBeta = k0*(n_mid.^2 - sp.n^2)/(2*sp.n);
+        %deltaBeta = k0*(n_mid - sp.n);        % Linear approximation
+        E = E .* exp(1i*deltaBeta*dz);
 
         % Half-step diffraction CN:
-        E = Aimp \ (Aexp * E);
-        
-        % PML mask to avoid boundary reflections:
+        E = Mplus \ (Mminus * E);
+
+        % Applying the mask to avoid boundary reflections:
         E = E .* mask;
 
         E_rz(:,iz) = E;
-        
-        I_rz(:,iz) = 0.5 * sp.eps0 * sp.c0 * n_real .* abs(E).^2;
-    
+        I_rz(:,iz) = 0.5 * sp.eps0 * sp.c0 * real(n_mid) .* abs(E).^2;
     end
 end

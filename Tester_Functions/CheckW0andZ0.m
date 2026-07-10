@@ -1,53 +1,66 @@
 %% CHECKKKKKKKKKKKKKK
 
-function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_probe)
+function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_probe, fileName)
     % ---------------------------------------------------------------------
     % Evaluates the effect of pump waist (w0) and focal position (z0) on 
-    % the final propagated probe FWHM.
+    % the final propagated probe FWHM, and writes the results to a .txt
+    % file
     % =====================================================================
     % INPUTS:
-    %        pump       - pump laser beam, Laser-type object
-    %        z          - z coordinate, propagation vector [m]
-    %        r          - radial spatial coordinate vector [m] 
-    %        x          - x coordinate vector [m]
-    %        t          - time vector [s]
-    %        probe      - probe laser beam, Laser-type object
-    %        z0_vec     - vector of z0 to check
-    %        w0_vec     - vector of w0 to check
-    %        fwhm_pump  - desired pump fwhm at the sample end
+    %        pump - pump laser beam, Laser-type object
+    %        z - z coordinate, propagation vector [m]
+    %        r - radial spatial coordinate vector [m] 
+    %        x - x coordinate vector [m]
+    %        t - time vector [s]
+    %        probe - probe laser beam, Laser-type object
+    %        z0_vec - vector of z0 to check
+    %        w0_vec - vector of w0 to check
+    %        fwhm_pump - desired pump fwhm at the sample end
     %        fwhm_probe - desired probe fwhm at the sample end
+    %        fileName - text file name, string
     % *********************************************************************
     
+    if nargin < 11 || isempty(fileName)
+        fileName = 'Figures_and_Results\sweep.txt';
+    end
+
+    % Opening a text file with a header:
+    fileID = fopen(fileName,'w+');
+    fprintf(fileID,"w0 [um], z0 [um] | pump FWHM [um] | probe FWHM [um] | error [um]\n");
+
+    sp = systemParameters();
+
     phi = atan(1);
     
     % PML mask parameters:
     a = 4;
     b = 8;
     
-    % 1. Initialize matrices where rows = w0, columns = z0
-    % This matches the orientation of your imagesc(z0_vec, w0_vec, ...) plot
+    % Initialize matrices where rows = w0, columns = z0
     errorMap = nan(numel(w0_vec), numel(z0_vec));
     probeFwhmMap = nan(numel(w0_vec), numel(z0_vec));
     results = [];
     
     % Track overall best performance
     best.error = inf;
-    
+
     for iw0 = 1:numel(w0_vec)
         for iz0 = 1:numel(z0_vec)
             w0_i = w0_vec(iw0);
             z0_i = z0_vec(iz0);
             
             % Generate Pump 
-            pump_i = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, w0_i, z0_i);
+            pump_i = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, w0_i, z0_i,sp.n,1);
             Ipump_i_xz = cylToCart(pump_i.intensityProfileBLDumped(z), r, x);
             
             % Pump FWHM at end of sample
             % (Assuming PF_x returns FWHM without halting the loop)
             [fwhm_pump_end, ~] = PF_x(Ipump_i_xz(:,end)*1e-4, x, "Pump at sample end", "Intensity [W/cm^2]");
             
+            probe1 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy,"Gauss", r, phi, z, probe.w0, probe.z0,sp.n);
+
             % Run simulation
-            [pDiff, ~, Ipropagate, ~] = runSimulation(x, z, r, t, pump_i, probe, a, b);
+            [pDiff, ~, Ipropagate, ~] = runSimulation(x, z, r, t, pump_i, probe1, a, b);
             
             % Find peak plasma time index
             [~, ~, itMax] = findMax(pDiff);
@@ -72,7 +85,7 @@ function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_p
             
             results = [results; w0_i, z0_i, fwhm_pump_end, fwhm_probe_end, total_err]; 
             
-            fprintf("w0 = %.3f um, z0 = %.1f um | pump = %.3f um | probe = %.3f um | error = %.3f um\n", ...
+            fprintf(fileID,"%.3f, %.1f | %.3f | %.3f | %.3f\n", ...
                 w0_i*1e6, z0_i*1e6, fwhm_pump_end*1e6, fwhm_probe_end*1e6, total_err*1e6);
             
             % Track global minimum
@@ -89,13 +102,16 @@ function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_p
     
     % Store and display results table
     best.results = array2table(results, 'VariableNames', {'w0', 'z0', 'fwhm_pump', 'fwhm_probe', 'error'});
-    fprintf("\nBEST OVERALL RESULT:\n")
-    fprintf("w0 = %.3f [um]\n", best.w0*1e6)
-    fprintf("z0 = %.3f [um]\n", best.z0*1e6)
-    fprintf("Pump FWHM = %.3f [um]\n", best.fwhm_pump*1e6)
-    fprintf("Probe FWHM = %.3f [um]\n", best.fwhm_probe*1e6)
-    fprintf("Error = %.3f [um]\n", best.error*1e6)
+    fprintf(fileID,"\nBEST OVERALL RESULT:\n");
+    fprintf(fileID,"w0 = %.3f [um]\n", best.w0*1e6);
+    fprintf(fileID,"z0 = %.3f [um]\n", best.z0*1e6);
+    fprintf(fileID,"Pump FWHM = %.3f [um]\n", best.fwhm_pump*1e6);
+    fprintf(fileID,"Probe FWHM = %.3f [um]\n", best.fwhm_probe*1e6);
+    fprintf(fileID,"Error = %.3f [um]\n", best.error*1e6);
     
+    % Closing the file:
+    fclose(fileID);
+
     % =====================================================================
     % Data Extraction for FWHM Plots
     % =====================================================================

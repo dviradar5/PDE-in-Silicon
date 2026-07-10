@@ -50,5 +50,20 @@ classdef systemParameters
         wl2 = 775e-9;               % Wavelength [m]
         alpha = 129620;             % α in Silicon at 775[nm] [1/m]
         alpha1550 = 1e5;            % α for 1550nm in n-type Si acc. to BS [1/m]
+    
+        % Pretty colors for plots:
+        colors = ["#000000", "#000080", "#006400", "#1F77B4", "#FF6187",...
+                  "#00bfff", "#00A896", "#80B3FF", "#483d8b", "#7B2CBF",...
+                  "#9B5DE5", "#8b008b", "#C44569", "#80B3FF", "#696969",...
+                  "#8b0000", "#ff4500", "#CC4F1B", "#2f4f4f", "#663399",...
+                  "#b8860b", "#E9A820", "#ffd700", "#808000", "#9acd32",...
+                  "#c71585", "#E76F51"];
+    end
+
+    methods
+        function color = randomColor(this)
+            % Returns one random color from the color palette
+            color = this.colors(randi(numel(this.colors)));
+        end
     end
 end

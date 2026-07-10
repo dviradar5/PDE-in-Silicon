@@ -1,6 +1,6 @@
 %% FINISHED
 
-function PF_plot_xz(I, z, x, plotTitle,izMax)
+function PF_plot_xz(I, z, x, plotTitle,izMax, png)
     % Plots matrix in xz
     % ---------------------------------------------------------------------
     % Plots colormap of a matrix in cartesian coordinates
@@ -11,25 +11,43 @@ function PF_plot_xz(I, z, x, plotTitle,izMax)
     %        x - x coordinate vector [m]
     %        plotTitle - part of the title, string (optinal)
     %        izMax - z index at maximum intensity (optinal)
+    %        png - export to .png file (optional)
     % *********************************************************************
     
-    if nargin < 4 || ~(isstring(plotTitle))
-        plotTitle = "";
+    arguments
+        I
+        z
+        x
+        plotTitle = ""
+        izMax = NaN
+        png = false
     end
+
     
-    figure("Color",'w');
+    hfig = figure("Color",'w');
     imagesc(z*1e6, x*1e6, I);
     
-    if nargin == 5
+    if ~isnan(izMax)
         hold on
         xline(z(izMax)*1e6, 'w--', sprintf("z = %.3f \\mum", z(izMax)*1e6), LineWidth=3);
         hold off
     end
 
     axis xy;
-    xlabel("z [\mum]", "FontSize",15);
-    ylabel("x [\mum]", "FontSize",15);
-    title(plotTitle);
-    colorbar;
     
+    xlabel("z  [$\mu$m]", "FontSize",15, 'Interpreter','latex');
+    ylabel("x [$\mu$m]", "FontSize",15, 'Interpreter','latex');
+    title(plotTitle);
+    
+    colorbar; grid on; axis tight; %box off;
+        
+    picturewidth = 25; hw_ratio = 0.65;
+    
+    set(findall(hfig,'-property','FontSize'), 'FontSize', 20);
+    set(findall(hfig,'-property','TickLabelInterpreter'),'TickLabelInterpreter','latex');
+    set(hfig, 'Units','centimeters','Position',[3 3 picturewidth hw_ratio*picturewidth]);
+    
+    if png
+        exportgraphics(hfig, "Figures_and_Results\" + plotTitle + ".png", 'Resolution', 300);
+    end
 end

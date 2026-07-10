@@ -39,7 +39,7 @@ function [widthVal,fig] = PF_x(I, x, plotTitle, yTitle, xTitle)
     isDonut = detectDonut(I, x);
 
     % Plot profile
-    fig = figure("Color",'w');
+    fig = 1;%figure("Color",'w');
     plot(x_um, I, "LineWidth", 2);
     hold on;
     axis tight; grid on;

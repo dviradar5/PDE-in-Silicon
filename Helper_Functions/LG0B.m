@@ -1,10 +1,10 @@
 %% FINISHED
 
-function prf = LGB01(r, phi, z, lambda, w0, z0, E0, n, l)
-    % Laguerre–Gaussian with p=0, l=1 (mode01)
+function prf = LG0B(r, phi, z, lambda, w0, z0, E0, n, l)
+    % Laguerre–Gaussian with p=0
     % ---------------------------------------------------------------------
     % Calculates the electric field (assuming polarization in x direction),
-    % or the spatial profile of a Laguerre-Gaussian beam of mode 01
+    % or the spatial profile of a Laguerre-Gaussian beam of mode 0l
     % 
     % The expression of Laguerre-Gaussian beam of mode pl is given by:
     %  E(r,z) = E0 * w0/w(z) * (r*sqrt(2)/w(z))^|l| * Lp|l|(2(r/w(z))^2)
