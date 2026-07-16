@@ -25,6 +25,8 @@ function [P_lost, T, P_back] = powerLoss(I, r)
     P_lost = P_front - P_back;                  % [W]
     T = (P_back / P_front)*100;                 % Transmission, percentage
     
+    fprintf("\nPfront = %.3f[W]", P_front);
+    fprintf("\nPback = %.3f[W]", P_back);
     fprintf("\nPower lost: %.3f[W]",P_lost);
     fprintf("\nTransmission: %.3f%%\n",T);
 end

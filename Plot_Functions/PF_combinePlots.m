@@ -1,10 +1,10 @@
 %% Document
 
-function PF_combinePlots(L, labels, figs, yTitle, plotTitle)
+function hfig = PF_combinePlots(L, labels, figs, yTitle, plotTitle)
     
     % New combined figure
-    fAll = figure("Color",'w');
-    axAll = axes(fAll);
+    hfig = figure("Color",'w');
+    axAll = axes(hfig);
     hold(axAll, 'on');
     
     figColors = lines(numel(L));
@@ -27,16 +27,22 @@ function PF_combinePlots(L, labels, figs, yTitle, plotTitle)
             oldName = get(linesOld(j), 'DisplayName');  
     
             set(newLine, 'Color', figColors(i,:), ...
-                'LineWidth', 3, ...
-                'DisplayName', string(oldName) + " - " + labels(i));
+                'LineWidth', 3);
+                %,DisplayName', string(oldName) + " - " + labels(i)
         end
     end
     
     hold(axAll, 'off');
     
     grid(axAll, 'on');
-    xlabel(axAll, 'z [\mum]', 'FontSize', 25);
-    ylabel(axAll, yTitle, 'FontSize', 25);
+    xlabel(axAll, "$z\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+    ylabel(axAll, yTitle, "FontSize",15, 'Interpreter','latex');
     %title(axAll, plotTitle);
-    legend(axAll, 'Location', 'best');
+    legend(axAll, 'Location', 'best','Interpreter','latex');
+
+    picturewidth = 25; hw_ratio = 0.65;
+    
+    set(findall(hfig,'-property','FontSize'), 'FontSize', 20);
+    set(findall(hfig,'-property','TickLabelInterpreter'),'TickLabelInterpreter','latex');
+    set(hfig, 'Units','centimeters','Position',[3 3 picturewidth hw_ratio*picturewidth]);
 end

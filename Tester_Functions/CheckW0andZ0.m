@@ -41,13 +41,14 @@ function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_p
     probeFwhmMap = nan(numel(w0_vec), numel(z0_vec));
     results = [];
     
+
     % Track overall best performance
     best.error = inf;
 
     for iw0 = 1:numel(w0_vec)
+        w0_i = w0_vec(iw0)
         for iz0 = 1:numel(z0_vec)
-            w0_i = w0_vec(iw0);
-            z0_i = z0_vec(iz0);
+            z0_i = z0_vec(iz0)
             
             % Generate Pump 
             pump_i = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, w0_i, z0_i,sp.n,1);
@@ -55,25 +56,35 @@ function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_p
             
             % Pump FWHM at end of sample
             % (Assuming PF_x returns FWHM without halting the loop)
-            [fwhm_pump_end, ~] = PF_x(Ipump_i_xz(:,end)*1e-4, x, "Pump at sample end", "Intensity [W/cm^2]");
-            
-            probe1 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy,"Gauss", r, phi, z, probe.w0, probe.z0,sp.n);
+            [fwhm_pump_end, ~] = PF_x(Ipump_i_xz(:,end)*1e-4, x,"Donut", "Pump at sample end", "Intensity [W/cm^2]");
+    
+            % probe1 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy,"Gauss", r, phi, z, probe.w0, probe.z0,sp.n);
 
             % Run simulation
-            [pDiff, ~, Ipropagate, ~] = runSimulation(x, z, r, t, pump_i, probe1, a, b);
+            % [pDiff, ~, Ipropagate, ~] = runSimulation(x, z, r, t, pump_i, probe1, a, b);
+            [Nfcc, info] = FCC_fromGaussianPulse(pump_i.intensityProfileBLDumped(z));
+
+            n_complex = complexRefractiveIndex(Nfcc, pump.lambda);%pDiff(:,:,itMax)
+
+            % Probe propagation after pump
+            [~, I_afterPump] = propagationBPM_rz( ...
+                probe.profile(:,1), r, z, probe, n_complex, a, b);
+            I_after_xz = cylToCart(I_afterPump,r,x);
             
             % Find peak plasma time index
-            [~, ~, itMax] = findMax(pDiff);
+            % [~, ~, itMax] = findMax(pDiff);
             
             % Probe FWHM at end of sample
             % Checking dimensions to prevent errors if Ipropagate is 2D vs 3D
-            if ndims(Ipropagate) == 3
-                probe_fwhm = FWHM(Ipropagate(:,:,itMax), r);
-            else
-                probe_fwhm = FWHM(Ipropagate, r);
-            end
-            fwhm_probe_end = probe_fwhm(end);
+            % if ndims(Ipropagate) == 3
+            %     probe_fwhm = FWHM(Ipropagate(:,:,itMax), r);
+            % else
+            %     probe_fwhm = FWHM(Ipropagate, r);
+            % end
+            % fwhm_probe_end = probe_fwhm(end);
            
+            [fwhm_probe_end,~]=PF_x(I_after_xz(:,end)*1e4,x,'Gauss',"Propagated Probe Intensity at the Sample End","Intensity [W/cm^2]");
+
             % 2. Calculate objective error to minimize
             err_pump = abs(fwhm_pump_end - fwhm_pump);
             err_probe = abs(fwhm_probe_end - fwhm_probe);
@@ -156,4 +167,122 @@ function CheckW0andZ0(pump, z, r, x, t, probe, z0_vec, w0_vec, fwhm_pump, fwhm_p
     ylabel('Propagated Probe FWHM [\mum]');
     title('Probe Focus Behavior vs. Pump Waist');
     legend('Location', 'best');
+end
+
+function [Nfcc, info] = FCC_fromGaussianPulse(Irz, varargin)
+% FCC_fromGaussianPulse
+% Calculates the free charge carrier concentration generated in silicon
+% from a given Nr x Nz spatial peak-intensity distribution and a Gaussian
+% temporal pulse.
+%
+% Assumptions:
+%   1. Irz is the PEAK intensity distribution [W/m^2].
+%   2. The pulse envelope is Gaussian in time:
+%
+%          I(r,z,t) = Irz(r,z) * exp(-4*log(2)*t^2/tauFWHM^2)
+%
+%      where tauFWHM is the temporal full width at half maximum.
+%
+%   3. One absorbed photon creates one electron-hole pair:
+%
+%          quantum efficiency eta = 1
+%
+%   4. Local one-photon absorption:
+%
+%          G(r,z,t) = alpha * I(r,z,t) / Ephoton
+%
+%      where alpha is the silicon absorption coefficient [1/m].
+%
+% Output:
+%   Nfcc : generated FCC concentration [1/m^3]
+%   info : structure with parameters and useful derived values
+%
+% Default silicon parameters:
+%   lambda   = 775e-9 m
+%   tauFWHM  = 30e-12 s
+%   alpha    = 1 / 10e-6 1/m
+%
+% Notes:
+%   - If your Irz already includes the absorption decay along z, do NOT
+%     multiply by exp(-alpha*z) again. This function only converts local
+%     intensity to local absorbed photon density using alpha.
+%   - If your Irz is normalized/a.u., you must scale it to physical W/m^2
+%     before using this function.
+
+    %% Parse inputs
+    p = inputParser;
+
+    addRequired(p, 'Irz', @(x) isnumeric(x) && ismatrix(x));
+
+    addParameter(p, 'lambda', 775e-9, ...
+        @(x) isnumeric(x) && isscalar(x) && x > 0);
+
+    addParameter(p, 'tauFWHM', 30e-12, ...
+        @(x) isnumeric(x) && isscalar(x) && x > 0);
+
+    % For Si at 775 nm, absorption depth is often taken around 8-10 um
+    % depending on the data source and sample conditions.
+    % alpha = 1 / absorption_depth.129620
+    addParameter(p, 'alpha', 1/10e-6, ...
+        @(x) isnumeric(x) && isscalar(x) && x >= 0);
+
+    addParameter(p, 'eta', 1, ...
+        @(x) isnumeric(x) && isscalar(x) && x >= 0 && x <= 1);
+
+    addParameter(p, 'return_cm3', false, ...
+        @(x) islogical(x) && isscalar(x));
+
+    parse(p, Irz, varargin{:});
+
+    lambda     = p.Results.lambda;
+    tauFWHM    = p.Results.tauFWHM;
+    alpha      = p.Results.alpha;
+    eta        = p.Results.eta;
+    return_cm3 = p.Results.return_cm3;
+
+    %% Physical constants
+    h  = 6.62607015e-34;       % Planck constant [J*s]
+    c0 = 299792458;            % speed of light [m/s]
+
+    %% Validate intensity
+    Irz = double(Irz);
+
+    if any(Irz(:) < 0)
+        warning('Irz contains negative values. Setting negative intensities to zero.');
+        Irz(Irz < 0) = 0;
+    end
+
+    %% Photon energy
+    Ephoton = h*c0/lambda;     % [J]
+
+    %% Gaussian temporal integral
+    % Fluence F(r,z) = integral I(r,z,t) dt
+    gaussTimeFactor = tauFWHM * sqrt(pi/(4*log(2)));   % [s]
+
+    Fluence = Irz * gaussTimeFactor;                   % [J/m^2]
+
+    %% FCC concentration
+    % absorbed energy density = alpha * Fluence [J/m^3]
+    % carriers = absorbed energy density / photon energy [1/m^3]
+    Nfcc_m3 = eta * alpha .* Fluence / Ephoton;        % [1/m^3]
+
+    if return_cm3
+        Nfcc = Nfcc_m3 * 1e-6;                         % [1/cm^3]
+    else
+        Nfcc = Nfcc_m3;                                % [1/m^3]
+    end
+
+    %% Output info
+    info = struct();
+    info.lambda = lambda;
+    info.tauFWHM = tauFWHM;
+    info.alpha = alpha;
+    info.absorptionDepth = 1/alpha;
+    info.eta = eta;
+    info.Ephoton = Ephoton;
+    info.gaussTimeFactor = gaussTimeFactor;
+    info.maxI_W_m2 = max(Irz(:));
+    info.maxFluence_J_m2 = max(Fluence(:));
+    info.maxNfcc_m3 = max(Nfcc_m3(:));
+    info.maxNfcc_cm3 = max(Nfcc_m3(:)) * 1e-6;
 end

@@ -19,7 +19,6 @@ function [fig,D,r0,r1,r2] = computeDiameter(I, r, z, type, plotTitle)
     %        r1, r2 - outer donut radii, vectors Nz
     % *********************************************************************
     
-    
     if nargin < 5 || ~(isstring(plotTitle))
         if string(type) == "Gauss"
             plotTitle = "Gaussian Diameter";
@@ -29,6 +28,8 @@ function [fig,D,r0,r1,r2] = computeDiameter(I, r, z, type, plotTitle)
             error("\nInappropriate type. Please use 'Gauss' or 'Donut'");
         end
     end
+
+    sp = systemParameters();
 
     r = r(:);
     z = z(:).';
@@ -54,13 +55,14 @@ function [fig,D,r0,r1,r2] = computeDiameter(I, r, z, type, plotTitle)
         D = sqrt(2/log(2)) .* FWHM;
 
         fig = figure("Color",'w');
-        plot(z*1e6, D*1e6, 'k','LineWidth', 2, 'DisplayName', 'Diameter');
+        plot(z*1e6, D*1e6, 'Color', sp.colors(22),'LineWidth', 4, 'DisplayName', 'Diameter');
         hold on;
-        plot(z*1e6, FWHM*1e6,'k--','LineWidth', 2, 'DisplayName', 'FWHM');
+        plot(z*1e6, FWHM*1e6,'Color', sp.colors(26), 'LineStyle','--','LineWidth', 4, 'DisplayName', 'FWHM');
         hold off; grid on;
-        xlabel('z [\mum]', 'FontSize', 15);
-        ylabel('Diameter [\mum]', 'FontSize', 15);
-        title(plotTitle); legend('Location','best');
+        xlabel("$z\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+        ylabel("Widths$\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+        title(plotTitle);
+        legend('Location','best','Interpreter','latex');
 
         r0 = 0; r1 = 0; r2 = 0;
 
@@ -116,14 +118,15 @@ function [fig,D,r0,r1,r2] = computeDiameter(I, r, z, type, plotTitle)
         end
 
         fig = figure("Color",'w');
-        plot(z*1e6, r1*2e6, 'k','LineWidth', 2, 'DisplayName', 'Inner diameter');
+        plot(z*1e6, r1*2e6, 'Color', sp.colors(4),'LineWidth', 4, 'DisplayName', 'Inner diameter');
         hold on;
-        plot(z*1e6, r2*2e6, 'k--','LineWidth', 2, 'DisplayName', 'Outer diameter');
-        plot(z*1e6, r0*2e6, 'k:', 'LineWidth', 2, 'DisplayName', 'D_0');
+        plot(z*1e6, r2*2e6, 'Color', sp.colors(5), 'LineStyle','--','LineWidth', 4, 'DisplayName', 'Outer diameter');
+        plot(z*1e6, r0*2e6, 'Color', sp.colors(6), 'LineStyle',':', 'LineWidth', 4, 'DisplayName', 'D_0');
         hold off; grid on;
-        xlabel('z [\mum]', 'FontSize', 15);
-        ylabel('Diameter [\mum]', 'FontSize', 15);
-        title(plotTitle); legend('Location','best');
+        xlabel("$z\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+        ylabel("$Widths\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+        title(plotTitle);
+        legend('Location','best','Interpreter','latex');
         
         D = 0;
 

@@ -46,13 +46,13 @@ function CheckZ0(pump, z, r, x, t, probe, z0_vec,l)
         disp(i);
         
         % Create new pump with the new z0:
-        pump_i = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, pump.w0, z0_vec(i),sp.n,l);
+        pump_i = laser(pump.lambda, pump.pulse_width, pump.pulse_energy, "Donut", r, phi, z, pump.w0, pump.z0,sp.n,l);
         Ipump1_xz = cylToCart(pump_i.intensityProfileBLDumped(z),r,x);
         %PF_plot_xz(Ipump1_xz*1e-4, z, x, sprintf('pump z0 = %.1f \\mum',z0_vec(i)*1e6));
         [fwhm_end_pump(i),~] = PF_x(Ipump1_xz(:,end)*1e-4,x,sprintf('Back Surafce: pump z0 = %.1f \\mum',z0_vec(i)*1e6),'Intensity [W/cm^2]');
 
         % Probe with constant z0=0 (sample surface):
-        probe1 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy, "Gauss", r, phi, z, probe.w0, probe.z0,sp.n);
+        probe1 = laser(probe.lambda, probe.pulse_width, probe.pulse_energy, "Gauss", r, phi, z, probe.w0, z0_vec(i),sp.n);
         %Iprobe1_xz = cylToCart(probe1.intensityProfileBLDumped(z),r,x);
         
         % Same z0 as the pump's:

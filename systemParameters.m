@@ -10,7 +10,7 @@ classdef systemParameters
     properties
         % Natural constants and parameters:
         c0 = 299792458;             % Speed of light in vacuum [m/s]
-        h = 6.62607e-34;            % Planck's constant [J*s]
+        h = 6.62607015e-34;         % Planck's constant [J*s]
         kB = 1.380649e-23;          % Boltzmann's constant [J/K]
         e = 1.60217663e-19;         % Elementary charge [C]
         me0 = 9.1093837015e-31;     % Electron mass [kg]
@@ -56,8 +56,8 @@ classdef systemParameters
                   "#00bfff", "#00A896", "#80B3FF", "#483d8b", "#7B2CBF",...
                   "#9B5DE5", "#8b008b", "#C44569", "#80B3FF", "#696969",...
                   "#8b0000", "#ff4500", "#CC4F1B", "#2f4f4f", "#663399",...
-                  "#b8860b", "#E9A820", "#ffd700", "#808000", "#9acd32",...
-                  "#c71585", "#E76F51"];
+                  "#b8860b", "#ffd700", "#808000", "#9acd32", "#c71585",...
+                  "#E76F51"];
     end
 
     methods

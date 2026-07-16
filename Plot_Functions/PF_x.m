@@ -1,6 +1,6 @@
 %% CHECKKKKKK
 
-function [widthVal,fig] = PF_x(I, x, plotTitle, yTitle, xTitle)
+function [widthVal,fig] = PF_x(I, x, type, plotTitle, yTitle, xTitle)
     % Intensity plotter with automatic width marker
     % ---------------------------------------------------------------------
     % If profile is Gaussian-like:
@@ -10,44 +10,40 @@ function [widthVal,fig] = PF_x(I, x, plotTitle, yTitle, xTitle)
     %   widthVal = distance between the two inner half-max points
     % ---------------------------------------------------------------------
 
-    if nargin < 3 || isempty(plotTitle)
+    if nargin < 4 || isempty(plotTitle)
         plotTitle = '';
     end
 
-   if nargin < 4 || isempty(yTitle)
-        yTitle = 'Intensity [W/m^2]';
+   if nargin < 5 || isempty(yTitle)
+        yTitle = "Intensity [$\mathrm{W}/\mathrm{m}^2$]";
     end
 
-    if nargin < 5 || isempty(xTitle)
-        xTitle = 'x [\mum]';
+    if nargin < 6 || isempty(xTitle)
+        xTitle = "$x\,[\mu\mathrm{m}]$";
     end
 
-    % Force column vectors
     x = x(:);
     I = real(I(:));
 
-    if length(x) ~= length(I)
-        error("x and I must have the same length.");
-    end
+    %I(I < 0) = 0;
 
-    % Remove small numerical negative values
-    I(I < 0) = 0;
-
-    x_um = x * 1e6;
-
-    % Detect profile type
-    isDonut = detectDonut(I, x);
+    % Detect profile type:
+    %isDonut = detectDonut(I, x);
 
     % Plot profile
-    fig = 1;%figure("Color",'w');
-    plot(x_um, I, "LineWidth", 2);
+    fig = figure("Color",'w');
+    plot(x*1e6, I, "LineWidth", 2);
     hold on;
+    
+    ax = gca;
+    ax.FontSize = 18;
+    
     axis tight; grid on;
-    xlabel(xTitle, "FontSize", 15);
-    ylabel(yTitle, "FontSize", 15);
+    xlabel(xTitle, "FontSize", 15, 'Interpreter', 'latex');
+    ylabel(yTitle, "FontSize", 15, 'Interpreter', 'latex');
     title(plotTitle);
 
-    if isDonut
+    if type == "Donut"
         widthVal = addDonutInnerDistance(I, x);
     else
         widthVal = addGaussianFWHM(I, x);
@@ -56,113 +52,225 @@ function [widthVal,fig] = PF_x(I, x, plotTitle, yTitle, xTitle)
     hold off;
 end
 
+% Detect donut automatically:
+% function isDonut = detectDonut(I, x)
+% 
+%     leftIdx  = find(x < 0);
+%     rightIdx = find(x > 0);
+% 
+%     if isempty(leftIdx) || isempty(rightIdx)
+%         isDonut = false;
+%         return;
+%     end
+% 
+%     [~, centerIdx] = min(abs(x));
+% 
+%     leftMax  = max(I(leftIdx));
+%     rightMax = max(I(rightIdx));
+%     centerVal = I(centerIdx);
+% 
+%     sideMin = min(leftMax, rightMax);
+%     globalMax = max(I);
+% 
+%     % Donut condition:
+%     % 1. clear side lobes exist on both sides
+%     % 2. center is much lower than side lobes
+%     % 3. side lobes are significant compared to global max
+%     isDonut = centerVal < 0.5 * sideMin && ...
+%               sideMin > 0.4 * globalMax;
+% end
 
-%% ============================================================
-%  Detect donut automatically
-% ============================================================
-
-function isDonut = detectDonut(I, x)
-
-    leftIdx  = find(x < 0);
-    rightIdx = find(x > 0);
-
-    if isempty(leftIdx) || isempty(rightIdx)
-        isDonut = false;
-        return;
-    end
-
-    [~, centerIdx] = min(abs(x));
-
-    leftMax  = max(I(leftIdx));
-    rightMax = max(I(rightIdx));
-    centerVal = I(centerIdx);
-
-    sideMin = min(leftMax, rightMax);
-    globalMax = max(I);
-
-    % Donut condition:
-    % 1. clear side lobes exist on both sides
-    % 2. center is much lower than side lobes
-    % 3. side lobes are significant compared to global max
-    isDonut = centerVal < 0.5 * sideMin && ...
-              sideMin > 0.4 * globalMax;
-end
-
-
-%% ============================================================
-%  Gaussian FWHM
-% ============================================================
-
+%  Gaussian FWHM:
+% function fwhmVal = addGaussianFWHM(I, x)
+% 
+%     Imax = max(I);
+%     halfMax = Imax / 2;
+% 
+%     if Imax <= 0
+%         warning("Cannot calculate FWHM: maximum intensity is zero.");
+%         fwhmVal = NaN;
+%         return;
+%     end
+% 
+%     [~, idxMax] = max(I);
+% 
+%     % Left half-max crossing
+%     idxLeft = find(I(1:idxMax) <= halfMax, 1, 'last');
+% 
+%     % Right half-max crossing
+%     idxRightLocal = find(I(idxMax:end) <= halfMax, 1, 'first');
+% 
+%     if isempty(idxLeft) || isempty(idxRightLocal)
+%         warning("Could not calculate Gaussian FWHM: profile does not cross half maximum on both sides.");
+%         fwhmVal = NaN;
+%         return;
+%     end
+% 
+%     idxRight = idxMax + idxRightLocal - 1;
+% 
+%     if idxLeft + 1 > length(I) || idxRight - 1 < 1
+%         warning("Invalid Gaussian FWHM indices.");
+%         fwhmVal = NaN;
+%         return;
+%     end
+% 
+%     % Interpolate crossings
+%     xHalfLeft = interpCrossing(x(idxLeft), x(idxLeft+1), ...
+%                                I(idxLeft), I(idxLeft+1), ...
+%                                halfMax);
+% 
+%     xHalfRight = interpCrossing(x(idxRight-1), x(idxRight), ...
+%                                 I(idxRight-1), I(idxRight), ...
+%                                 halfMax);
+% 
+%     fwhmVal = xHalfRight - xHalfLeft;
+% 
+%     % Plot FWHM line
+%     plot([xHalfLeft xHalfRight]*1e6, [halfMax halfMax], ...
+%          'LineWidth', 1.8);
+% 
+%     plot([xHalfLeft xHalfLeft]*1e6, [0 halfMax], ...
+%          ':', 'LineWidth', 1.2, color='r');
+% 
+%     plot([xHalfRight xHalfRight]*1e6, [0 halfMax], ...
+%          ':', 'LineWidth', 1.2, color='r');
+% 
+%     text(mean([xHalfLeft xHalfRight])*1e6, halfMax, ...
+%     sprintf('$%.3f\\,\\mu\\mathrm{m}$', fwhmVal*1e6), ...
+%     'VerticalAlignment', 'bottom','FontSize', 14, 'Interpreter', 'latex');
+% end
+% Gaussian / main-lobe FWHM around x = 0:
 function fwhmVal = addGaussianFWHM(I, x)
 
-    Imax = max(I);
-    halfMax = Imax / 2;
+    % -------------------------------------------------------------
+    % This version measures the connected central lobe around x = 0.
+    %
+    % Instead of using global max(I), it uses:
+    %
+    %       I0 = I(x = 0)
+    %       halfMax = I0/2
+    %
+    % Then it searches outward from x = 0 to find the nearest
+    % left/right crossings of I = I0/2.
+    %
+    % This prevents a split profile with two side peaks from being
+    % interpreted as two separate Gaussian peaks.
+    % -------------------------------------------------------------
 
-    if Imax <= 0
-        warning("Cannot calculate FWHM: maximum intensity is zero.");
+    x = x(:);
+    I = real(I(:));
+
+    % Remove numerical junk
+    I(~isfinite(I)) = 0;
+    I(I < 0) = 0;
+
+    % Make sure x is sorted
+    [x, sortIdx] = sort(x);
+    I = I(sortIdx);
+
+    if min(x) > 0 || max(x) < 0
+        warning("Cannot calculate central FWHM: x vector does not include x = 0.");
         fwhmVal = NaN;
         return;
     end
 
-    [~, idxMax] = max(I);
+    % -------------------------------------------------------------
+    % Interpolate intensity exactly at x = 0.
+    % This is better than only taking the closest grid point.
+    % -------------------------------------------------------------
+    I0 = interp1(x, I, 0, 'linear');
 
-    % Left half-max crossing
-    idxLeft = find(I(1:idxMax) <= halfMax, 1, 'last');
+    if I0 <= 0 || isnan(I0)
+        warning("Cannot calculate central FWHM: I(x=0) is zero or invalid.");
+        fwhmVal = NaN;
+        return;
+    end
 
-    % Right half-max crossing
-    idxRightLocal = find(I(idxMax:end) <= halfMax, 1, 'first');
+    halfMax = 0.5 * I0;
+
+    % -------------------------------------------------------------
+    % Insert x = 0 explicitly into the sampled arrays.
+    % This makes the crossing search clean even if 0 is between grid points.
+    % -------------------------------------------------------------
+    tol = 1e-15;
+
+    if ~any(abs(x) < tol)
+        x = [x; 0];
+        I = [I; I0];
+
+        [x, sortIdx] = sort(x);
+        I = I(sortIdx);
+    else
+        [~, i0_existing] = min(abs(x));
+        I(i0_existing) = I0;
+    end
+
+    [~, i0] = min(abs(x));
+
+    % -------------------------------------------------------------
+    % Search left from x = 0:
+    % Find the nearest point to the left where I <= I0/2.
+    % -------------------------------------------------------------
+    idxLeft = find(I(1:i0) <= halfMax, 1, 'last');
+
+    % -------------------------------------------------------------
+    % Search right from x = 0:
+    % Find the nearest point to the right where I <= I0/2.
+    % -------------------------------------------------------------
+    idxRightLocal = find(I(i0:end) <= halfMax, 1, 'first');
 
     if isempty(idxLeft) || isempty(idxRightLocal)
-        warning("Could not calculate Gaussian FWHM: profile does not cross half maximum on both sides.");
+        warning("Could not calculate central FWHM: central lobe does not cross I(0)/2 on both sides.");
         fwhmVal = NaN;
         return;
     end
 
-    idxRight = idxMax + idxRightLocal - 1;
+    idxRight = i0 + idxRightLocal - 1;
 
     if idxLeft + 1 > length(I) || idxRight - 1 < 1
-        warning("Invalid Gaussian FWHM indices.");
+        warning("Invalid central FWHM crossing indices.");
         fwhmVal = NaN;
         return;
     end
 
-    % Interpolate crossings
-    xHalfLeft = interpCrossing(x(idxLeft), x(idxLeft+1), ...
-                               I(idxLeft), I(idxLeft+1), ...
-                               halfMax);
+    % -------------------------------------------------------------
+    % Interpolate left crossing.
+    % Left side: I(idxLeft) <= halfMax, I(idxLeft+1) > halfMax
+    % -------------------------------------------------------------
+    xHalfLeft = interpCrossing( ...
+        x(idxLeft), x(idxLeft+1), ...
+        I(idxLeft), I(idxLeft+1), ...
+        halfMax);
 
-    xHalfRight = interpCrossing(x(idxRight-1), x(idxRight), ...
-                                I(idxRight-1), I(idxRight), ...
-                                halfMax);
+    % -------------------------------------------------------------
+    % Interpolate right crossing.
+    % Right side: I(idxRight-1) > halfMax, I(idxRight) <= halfMax
+    % -------------------------------------------------------------
+    xHalfRight = interpCrossing( ...
+        x(idxRight-1), x(idxRight), ...
+        I(idxRight-1), I(idxRight), ...
+        halfMax);
 
     fwhmVal = xHalfRight - xHalfLeft;
 
-    % Plot FWHM line
+    % Plot central FWHM marker
     plot([xHalfLeft xHalfRight]*1e6, [halfMax halfMax], ...
-         'LineWidth', 1.8);
+         'LineWidth', 1.8, 'Color', 'r');
 
     plot([xHalfLeft xHalfLeft]*1e6, [0 halfMax], ...
-         ':', 'LineWidth', 1.2, color='r');
+         ':', 'LineWidth', 1.2, 'Color', 'r');
 
     plot([xHalfRight xHalfRight]*1e6, [0 halfMax], ...
-         ':', 'LineWidth', 1.2, color='r');
-
-    % plot(xHalfLeft*1e6, halfMax, 'o', ...
-    %      'MarkerSize', 7, 'LineWidth', 2, color='r');
-    % 
-    % plot(xHalfRight*1e6, halfMax, 'o', ...
-    %      'MarkerSize', 7, 'LineWidth', 2, color='r');
+         ':', 'LineWidth', 1.2, 'Color', 'r');
 
     text(mean([xHalfLeft xHalfRight])*1e6, halfMax, ...
-        sprintf('%.3f \\mum', fwhmVal*1e6), ...
-        'VerticalAlignment', 'bottom', 'FontSize',14);
+        sprintf('$%.3f\\,\\mu\\mathrm{m}$', fwhmVal*1e6), ...
+        'VerticalAlignment', 'bottom', ...
+        'FontSize', 14, ...
+        'Interpreter', 'latex');
 end
 
-
-%% ============================================================
-%  Donut inner half-max distance
-% ============================================================
-
+%  Donut inner half-max distance:
 function donutVal = addDonutInnerDistance(I, x)
 
     leftIdx  = find(x < 0);
@@ -240,20 +348,6 @@ function donutVal = addDonutInnerDistance(I, x)
 
     yLine = min(halfLeft, halfRight);
 
-    % Plot lobe peaks
-    % plot(x(idxLeftPeak)*1e6, IleftMax, 'o', ...
-    %      'MarkerSize', 8, 'LineWidth', 2, color='k');
-    % 
-    % plot(x(idxRightPeak)*1e6, IrightMax, 'o', ...
-    %      'MarkerSize', 8, 'LineWidth', 2, color='k');
-
-    % Plot inner half-max points
-    % plot(xHalfLeftInner*1e6, halfLeft, 'x', ...
-    %      'MarkerSize', 9, 'LineWidth', 2, color='r');
-    % 
-    % plot(xHalfRightInner*1e6, halfRight, 'x', ...
-    %      'MarkerSize', 9, 'LineWidth', 2, color='r');
-
     % Draw distance line
     plot([xHalfLeftInner xHalfRightInner]*1e6, [yLine yLine], ...
          '-', 'LineWidth', 1.8, color='r');
@@ -265,15 +359,11 @@ function donutVal = addDonutInnerDistance(I, x)
          ':', 'LineWidth', 1.2, color='r');
 
     text(mean([xHalfLeftInner xHalfRightInner])*1e6, yLine, ...
-        sprintf('%.3f \\mum', donutVal*1e6), ...
-        'VerticalAlignment', 'bottom', 'FontSize',14);
+        sprintf('$%.3f\\,\\mu\\mathrm{m}$', donutVal*1e6), ...
+        'VerticalAlignment', 'bottom', 'FontSize',14, 'Interpreter','latex');
 end
 
-
-%% ============================================================
-%  Linear interpolation helper
-% ============================================================
-
+% Linear interpolation helper:
 function xCross = interpCrossing(x1, x2, y1, y2, yTarget)
 
     if y2 == y1

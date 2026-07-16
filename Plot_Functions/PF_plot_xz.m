@@ -1,6 +1,6 @@
 %% FINISHED
 
-function PF_plot_xz(I, z, x, plotTitle,izMax, png)
+function hfig = PF_plot_xz(I, z, x, plotTitle,izMax, png)
     % Plots matrix in xz
     % ---------------------------------------------------------------------
     % Plots colormap of a matrix in cartesian coordinates
@@ -32,14 +32,15 @@ function PF_plot_xz(I, z, x, plotTitle,izMax, png)
         xline(z(izMax)*1e6, 'w--', sprintf("z = %.3f \\mum", z(izMax)*1e6), LineWidth=3);
         hold off
     end
-
-    axis xy;
     
-    xlabel("z  [$\mu$m]", "FontSize",15, 'Interpreter','latex');
-    ylabel("x [$\mu$m]", "FontSize",15, 'Interpreter','latex');
+    ax = gca;
+    ax.FontSize = 18;
+
+    xlabel("$z\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+    ylabel("$x\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
     title(plotTitle);
     
-    colorbar; grid on; axis tight; %box off;
+    colorbar; grid off; axis tight; %box off;
         
     picturewidth = 25; hw_ratio = 0.65;
     

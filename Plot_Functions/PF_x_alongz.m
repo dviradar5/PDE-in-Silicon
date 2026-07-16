@@ -19,22 +19,31 @@ function PF_x_alongz(I,x,z, plotTitle,ITitle,png)
         x
         z
         plotTitle = ""
-        ITitle = "Intensity [W/m^2]"
+        ITitle = "Intensity [$\mathrm{W}/\mathrm{m}^2$]"
         png = false
     end
     
     hfig = figure('Color','w');
     
     surf(z*1e6,x*1e6, I);
-    shading interp; colorbar;
     
+    shading interp; colorbar;
     axis tight; grid on; %box off;
     
-    xlabel("z [$\mu$m]", 'FontSize',15, 'Interpreter','latex');
-    ylabel("x [\mum]", 'FontSize',15, 'Interpreter','latex');
+    ax = gca;
+    ax.FontSize = 18;
+
+    xlabel("$z\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+    ylabel("$x\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
     zlabel(ITitle, 'FontSize',15, 'Interpreter','latex');
     title(plotTitle, 'Interpreter', 'latex');
+
+    picturewidth = 25; hw_ratio = 0.65;
     
+    set(findall(hfig,'-property','FontSize'), 'FontSize', 20);
+    set(findall(hfig,'-property','TickLabelInterpreter'),'TickLabelInterpreter','latex');
+    set(hfig, 'Units','centimeters','Position',[3 3 picturewidth hw_ratio*picturewidth]);
+
     if png
         exportgraphics(hfig, "Figures_and_Results\" + plotTitle + ".png", 'Resolution', 300);
     end

@@ -1,6 +1,6 @@
 %% CHECKKKKKKKKKK
 
-function PF_probeComparison(Ilist, names, x, z, it, izMax, yTitle)
+function hfig = PF_probeComparison(Ilist, names, x, z, it, izMax, yTitle)
     % Compares intensities
     % ---------------------------------------------------------------------
     % Plots several colormaps of (probe) intensity before and after pump
@@ -17,8 +17,10 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax, yTitle)
     % *********************************************************************
    
     if nargin < 7 || isempty(yTitle)
-        yTitle = 'Intensity [W/m^2]';
+        yTitle = "Intensity [$\mathrm{W}/\mathrm{m}^2$]";
     end
+
+    sp = systemParameters();
 
     % Number of intensities to compare:
     NI = numel(Ilist);
@@ -41,11 +43,11 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax, yTitle)
     sgtitle(sprintf('Probe Intensity Maps at %.0f ps', it*1e12));
 
     % Comparing maximal intensity:
-    figure('Color','w');
+    hfig = figure('Color','w');
     hold on;
 
     styles = {'-', '--', ':', '-.'};
-    cmap = lines(NI);
+    %cmap = lines(NI);%cmap(i,:)
 
     for i = 1:NI
         I = Ilist{i};
@@ -53,15 +55,27 @@ function PF_probeComparison(Ilist, names, x, z, it, izMax, yTitle)
 
         style = styles{mod(i-1, numel(styles)) + 1};
 
-        plot(x*1e6, I(:,iz), LineWidth=2, LineStyle=style, Color=cmap(i,:), ...
-            DisplayName=sprintf('%s  (z = %.2f \\mum)', names{i}, z(iz)*1e6));
+        plot(x*1e6, I(:,iz), LineWidth=2, LineStyle=style, Color=sp.colors(i), ...
+            DisplayName=sprintf('%s', names{i}));
+        sprintf('%s  (z = %.2f \\mum)', names{i}, z(iz)*1e6);
     end
 
     hold off;
     
     axis tight; grid on;
-    xlabel('x [\mum]', 'FontSize',15); ylabel(yTitle, 'FontSize',15);
-    legend('Location','best');
+
+    ax = gca;
+    ax.FontSize = 18;
+
+    xlabel("$x\,[\mu\mathrm{m}]$", "FontSize",15, 'Interpreter','latex');
+    ylabel(yTitle, "FontSize",15, 'Interpreter','latex');
+    legend('Location','best','Interpreter','latex');
     title('Maximal Probe Intensity Profiles');
+
+    picturewidth = 25; hw_ratio = 0.65;
+    
+    set(findall(hfig,'-property','FontSize'), 'FontSize', 20);
+    set(findall(hfig,'-property','TickLabelInterpreter'),'TickLabelInterpreter','latex');
+    set(hfig, 'Units','centimeters','Position',[3 3 picturewidth hw_ratio*picturewidth]);
 
 end

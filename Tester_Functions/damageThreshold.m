@@ -1,35 +1,48 @@
 %% FINISHED
 
-function Ith = damageThreshold(I, tau, wl, title)
+function [Ith,Eth] = damageThreshold(I, E, tau, wl, w, name, l)
     % Calculates damage-threshold
     % ---------------------------------------------------------------------
     % Calculates the intensity damage-threshold for silicon illuminated by
     % a laser beam with specific pulse width and wavelength below 1[micron]
     %
-    % Threshold flounce value was taken from Wang et al. (2010) (see paper
+    % Threshold fluence value was taken from Wang et al. (2010) (see paper
     % 033103_1_online in the papers folder)
     % =====================================================================
     % INPUTS:
     %        I - intensity matrix, Nr x Nz, [W/m^2]
+    %        E - beam energy, [J]
     %        tau - laser pulse width, [s]
     %        wl - wavelength, [m]
-    %        title - string
-    % OUTPUT:
+    %        w - beam radius, [m]
+    %        name - string
+    %        l - LG topological charge (optional)
+    % OUTPUTS:
     %        Ith - damage threshold maximal intensity, [W/cm^2]
+    %        Eth - damage threshold maximal energy, [J]
     % *********************************************************************
     
-    % Damage-threshold flounce for laser with 775[nm] wavelength:
+    % Damage-threshold fluence for laser with 775[nm] wavelength:
     Fth_10ps = 0.7;                                 % [J/cm^2]
     Fth = Fth_10ps*sqrt(tau/10e-12)*(wl/1064e-9);   % Corrections
-
-    Ith = Fth/tau;                                  % [W/cm^2]
     
+    Eth = 0.5 * pi * (w*100)^2 * Fth;               % Omega in [cm]
+    
+    if nargin < 7 || isempty(l)
+        l = 0;
+    else
+        m = abs(l);
+        Eth = Eth *  factorial(m)*exp(m)/(m^m);
+    end
+            
+    Ith = Fth/(tau*sqrt(pi/(4*log(2))));            % [W/cm^2]
+
     [xMax,zMax,~] = findMax(I);
     Imax = I(xMax,zMax) * 1e-4;
 
-    fprintf("\n%s", title);
+    fprintf("\n%s", name);
 
-    if Imax >= Ith
+    if Imax >= Ith || E > Eth
         error("\nCaution!" + ...
             "\nyour intensity has passed the damage threshold " + ...
             "for Silicon with laser beam with wavelength of %.0f[nm] and " + ...
@@ -39,6 +52,7 @@ function Ith = damageThreshold(I, tau, wl, title)
     end
     
     fprintf("\nMaximal intensity reached: %.3e[W/cm^2]", Imax);
-    fprintf("\nDamage-threshold maximal intensity: %.3e[W/cm^2]\n", Ith);
+    fprintf("\nDamage-threshold maximal intensity: %.3e[W/cm^2]", Ith);
+    fprintf("\nDamage-threshold maximal energy: %.3e[J]\n", Eth);
 
 end

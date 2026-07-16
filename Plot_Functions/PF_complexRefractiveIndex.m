@@ -65,19 +65,25 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it, png)
     % Combined graphs:
     hfig = figure("Color",'w');
     ax = gca;
-    acolor = sp.randomColor();
-    yyaxis right;  plot(x*1e6, n_imag_x(:,iz), 'Color', acolor, 'LineWidth',3, 'LineStyle',':');
+    acolor = sp.colors(5);
+    yyaxis right;  plot(x*1e6, n_imag_x(:,iz), 'Color', acolor, 'LineWidth',4, 'LineStyle',':');
     ylabel('$\alpha\ [\mathrm{cm}^{-1}]$', 'Interpreter','latex','FontSize',15);
+    a = n_imag_x(:,iz);
+    da = 0.05*(max(a)-min(a));
+    ylim([min(a)-da, max(a)+da]);
     ax.YColor = acolor;%"#80B3FF"     
     
-    yyaxis left; plot(x*1e6, real(n_xz(:,iz)), 'Color', [1 0.38 0.53], 'LineWidth', 3);
+    yyaxis left; plot(x*1e6, real(n_xz(:,iz)), 'Color', sp.colors(10), 'LineWidth', 4);
     ylabel('$n$','Interpreter', 'latex','FontSize', 15);
-    ax.YColor = [1 0.38 0.53]; 
+    n = real(n_xz(:,iz));
+    dn = 0.05*(max(n)-min(n));
+    ylim([min(n)-dn, max(n)+dn]);
+    ax.YColor = sp.colors(10); 
 
-    axis tight; grid on; %box off;
+    grid on; %box off;axis tight; 
     
     xlabel("x [$\mu$m]", "FontSize",15, 'Interpreter','latex');
-    legend("n","$\alpha$", 'Interpreter','latex');
+    % legend("n","$\alpha$", 'Interpreter','latex');
     title(sprintf('Refraction and absorption at $z=%.2f\\,\\mu\\mathrm{m}$ and $t=%.0f\\,\\mathrm{ps}$', ...
           z(iz)*1e6, it*1e12),'Interpreter', 'latex');    
     
@@ -88,7 +94,7 @@ function PF_complexRefractiveIndex(n_complex, r, z, x, lambda, iz, it, png)
     set(hfig, 'Units','centimeters','Position',[3 3 picturewidth hw_ratio*picturewidth]);
 
     if png
-        exportgraphics(hfig, "Figures_and_Results\Refraction and absorption.png", 'Resolution', 300);
+        exportgraphics(hfig, "Figures_and_Results\Nadav\Refraction and absorption.png", 'Resolution', 300);
     end
 
 end
