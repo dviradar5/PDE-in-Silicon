@@ -114,8 +114,8 @@ probe = laser(sp.wl2, probe_width, probe_E, "Gauss", r, phi, z, probe_w0, probe_
 
 % Undisturbed probe propagating through the sample:
 n = (sp.n + 1i*sp.alpha*probe.lambda/(4*pi))*ones(Nr,Nz);               % Includes BL 
-[~, Iprobe] = propagationBPM_rz(probe.profile(:,1),r,z,probe,n,0,8);    % [W/m^2]
-Iprobe_xz = cylToCart(Iprobe,r,x);
+[~, Iund] = propagationBPM_rz(probe.profile(:,1),r,z,probe,n,0,8);    % [W/m^2]
+Iund_xz = cylToCart(Iund,r,x);
 
 % L = (5:5:135)*1e-9;
 % 
@@ -172,13 +172,13 @@ Iprobe_xz = cylToCart(Iprobe,r,x);
 % set(hfig2, 'Units','centimeters', ...
 %     'Position',[3 3 picturewidth hw_ratio*picturewidth]);
 
-fig4 = PF_plot_xz(Iprobe_xz/max(Iprobe_xz(:)), z, x);
+fig4 = PF_plot_xz(Iund_xz/max(Iund_xz(:)), z, x);
 % [~,fig5] = PF_x(Iprobe_xz(:,1)/max(Iprobe_xz(:)), x,'',"Undisturbed Probe Intensity at the Sample Front","Intensity [au]");
-[~,fig6] = PF_x(Iprobe_xz(:,end)/max(Iprobe_xz(:,end)), x,'',"Undisturbed Probe Intensity at the Sample End","Intensity [au]");
+[~,fig6] = PF_x(Iund_xz(:,end)/max(Iund_xz(:,end)), x,'',"Undisturbed Probe Intensity at the Sample End","Intensity [au]");
 %PF_x_alongz(Iprobe_xz*1e-4,x,z,"Propagated Probe Intensity");
 
 %absorptionDepth(Iprobe(1,:),z,probe.lambda);
-damageThreshold(Iprobe, probe_E, probe_width, probe.lambda, probe_w0, "Undisturbed Probe:");
+damageThreshold(Iund, probe_E, probe_width, probe.lambda, probe_w0, "Undisturbed Probe:");
 
 % Probe Diameter:
 %computeDiameterTheoretically(z, "Gauss",0, sp.wl2, probe_w0, 0, sp.n);
@@ -208,12 +208,12 @@ I_xz = cylToCart(I,r,x);
 damageThreshold(I, probe_E, probe_width, probe.lambda, probe_w0, "Propagated Probe:");
 [fig7,~] = computeDiameter(I, r, z, "Gauss","Propogated Probe Diameter");
 
-fig8 = PF_plot_xz(I_xz/max(Iprobe_xz(:)), z, x); 
+fig8 = PF_plot_xz(I_xz/max(Iund_xz(:)), z, x); 
 [~,fig9] = PF_x(I_xz(:,end)/max(I_xz(:,end)), x,'',"Propagated Probe Intensity at the Sample End","Intensity [au]");
 
 % Checking for losses:
 fprintf("\nUndisturbed Probe:");
-[P_lost, T, P_back] = powerLoss(Iprobe, r);
+[P_lost, T, P_back] = powerLoss(Iund, r);
 fprintf("\nPropagated Probe:");
 [Pp_lost, Tp, Pp_back] = powerLoss(I, r);
 

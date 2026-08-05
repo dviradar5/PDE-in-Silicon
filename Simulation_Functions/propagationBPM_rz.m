@@ -41,8 +41,11 @@ function [E_rz, I_rz] = propagationBPM_rz(E0_r, r, z, probe, n_complex, a, b)
 
     % Edge-absoring mask:
     mask = exp(-a * (rVec / rVec(end)).^b);
-
-    E_rz = zeros(Nr, Nz);
+    % rPML = 0.8 * rVec(end);
+    % rho = max((rVec - rPML) / (rVec(end) - rPML), 0);
+    % mask = exp(-a * rho.^b / (Nz - 1));
+    
+   E_rz = zeros(Nr, Nz);
     I_rz = zeros(Nr, Nz);
 
     E_rz(:,1) = E0_r(:);

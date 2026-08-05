@@ -60,8 +60,9 @@ function prf = LG0B(r, phi, z, lambda, w0, z0, E0, n, l)
         end
         
         % Amplitude:
-        amp = E0 * (w0/w) .* (sqrt(2)*r/w).^abs(l) .* L0l .* exp(-(r.^2)/(w^2));
-
+        norm_l = 1 / sqrt(factorial(abs(l)));
+        amp = E0*norm_l*(w0/w).*(sqrt(2)*r/w).^abs(l).*L0l.*exp(-(r.^2)/(w^2));
+        
         % Phase:
         phase = exp(-1i * (k*Z - (abs(l)+1)*gouy + k*(r.^2)/(2*R)));
         vort_ph = exp(1i * l * phi);
