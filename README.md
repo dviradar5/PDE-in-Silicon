@@ -24,7 +24,7 @@ The model assumes radial symmetry, scalar paraxial propagation, idealized beams,
 
 ## References
 
-1. **D. Adar**, *Implementation of an Innovative Photonic Super-Resolution Method for Fault Monitoring in Silicon Microelectronic Chips* (original Hebrew title: *מימוש שיטה פוטונית חדשנית של סופר רזולוציה לניטור תקלות בשבבי סיליקון במיקרו אלקטרוניקה*), B.Sc. final project report, Faculty of Engineering, Bar-Ilan University, October 2026. Supervisors: M. Sinvani and Z. Zalevsky. [Final project report]()
+1. **D. Adar**, *Implementation of an Innovative Photonic Super-Resolution Method for Fault Monitoring in Silicon Microelectronic Chips* (original Hebrew title: *מימוש שיטה פוטונית חדשנית של סופר רזולוציה לניטור תקלות בשבבי סיליקון במיקרו אלקטרוניקה*), B.Sc. final project report, Faculty of Engineering, Bar-Ilan University, October 2026. Supervisors: M. Sinvani and Z. Zalevsky. [Final project report](https://github.com/dviradar5/PDE-in-Silicon/blob/main/Papers/%D7%93%D7%95%D7%97%20%D7%9E%D7%A1%D7%9B%D7%9D.pdf)
 2. N. Shabairou, Z. Zalevsky and M. Sinvani, “Laser Beam Self-Focusing in Silicon at an Absorbed Wavelength by a Vortex Beam in the Same Wavelength,” *ACS Omega* **9** (2024), 16969–16975. https://doi.org/10.1021/acsomega.3c08325
 3. N. Shabairou, M. Tiferet, Z. Zalevsky and M. Sinvani, “Dynamics of Laser-Induced Tunable Focusing in Silicon,” *Scientific Reports* **12** (2022), 6342. https://doi.org/10.1038/s41598-022-10112-3
 4. R. A. Soref and B. R. Bennett, “Electrooptical Effects in Silicon,” *IEEE Journal of Quantum Electronics* **23** (1987), 123–129.
